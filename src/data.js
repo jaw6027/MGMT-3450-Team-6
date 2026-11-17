@@ -34,6 +34,22 @@ export function summarize(records) {
   return { total: records.length, qualified, samples, trials, feedback, conversion: qualified ? samples / qualified * 100 : 0 };
 }
 
+// Interest means reaching Sample requested or any later stage, once per lead.
+export function interestLeaders(records, field) {
+  const groups = new Map();
+  for (const lead of records) {
+    const group = groups.get(lead[field]) || { label: lead[field], total: 0, requests: 0 };
+    group.total++;
+    if (lead.stage >= 2) group.requests++;
+    groups.set(lead[field], group);
+  }
+  const max = Math.max(0, ...[...groups.values()].map(group => group.requests));
+  return {
+    max,
+    leaders: max ? [...groups.values()].filter(group => group.requests === max) : [],
+  };
+}
+
 // Protect spreadsheet users from formula interpretation when exporting free text.
 export function csvCell(value) {
   let text = String(value ?? '');

@@ -1,7 +1,7 @@
 import '@fontsource-variable/dm-sans';
 import '@fontsource-variable/manrope';
 import './style.css';
-import { leads, channels, audiences, stages, messages, filterLeads, summarize } from './data.js';
+import { leads, channels, audiences, stages, messages, filterLeads, summarize, interestLeaders } from './data.js';
 import { importLeads, exportLeads, templateCSV, MAX_BYTES } from './csv.js';
 
 const icons = {
@@ -59,6 +59,7 @@ document.querySelector('#app').innerHTML = `
     <div class="filter-row"><div class="filter-group"><label>Period<select id="period"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option><option value="all">All demo dates</option></select></label><label>Channel<select id="channel">${options(['All channels', ...channels])}</select></label><label>Buyer audience<select id="audience">${options(['All audiences', ...audiences])}</select></label></div><span class="snapshot">Fixed demo snapshot · Nov 17, 2026</span></div>
     <div class="data-note">${icon('box')}<span><strong>Illustrative data, real project direction.</strong> All organizations, leads, ratings, and outcomes below are simulated for this class project.</span></div>
     <section class="metrics" aria-label="Headline metrics" id="metrics" aria-live="polite"></section>
+    <section class="interest-summary" aria-labelledby="interest-title"><div class="interest-heading"><div>${icon('chart')}<h2 id="interest-title">What’s getting the most interest?</h2></div><span id="interest-source" class="subtle-tag"></span></div><div id="interest-results" class="interest-results" aria-live="polite"></div><p id="interest-basis"></p></section>
     <div class="section-heading" id="journey"><h2>How interest becomes insight</h2><span>Acquisition → evaluation → learning</span></div>
     <div class="chart-grid"><section class="card"><div class="card-heading"><div><h3>Customer journey</h3><p>Cumulative stages reached by filtered leads</p></div><span class="subtle-tag">FUNNEL</span></div><div id="funnel"></div><p class="card-footnote">Later stages are included in every earlier stage.</p></section><section class="card"><div class="card-heading"><div><h3>Where conversations begin</h3><p>Inquiries by first-touch channel</p></div>${icon('people')}</div><div id="channels"></div><div class="chart-legend"><i></i> Inquiry count <span>One source per lead</span></div></section></div>
     <div class="section-heading" id="research"><h2>Listen. Learn. Refine.</h2><span>Find the message. Improve the experience.</span></div>
@@ -108,6 +109,7 @@ function render() {
   const s = summarize(records);
   const cards = [ ['Total inquiries', s.total, 'First conversations', 'people'], ['Qualified leads', s.qualified, 'Buyer fit established', 'check'], ['Sample requests', s.samples, 'Interest in a sample', 'box'], ['Trial feedback', s.feedback, 'Responses collected', 'chat'], ['Sample conversion', `${s.conversion.toFixed(1)}%`, 'Requests ÷ qualified leads', 'chart'] ];
   document.querySelector('#metrics').innerHTML = cards.map(([label,value,note,glyph], i) => `<article class="metric ${i === 2 ? 'featured' : ''}"><div><span>${label}</span>${icon(glyph)}</div><strong>${value}</strong><small>${note}</small></article>`).join('');
+  renderInterest(records);
   document.querySelector('#funnel').innerHTML = [s.total,s.qualified,s.samples,s.trials,s.feedback].map((n,i)=>`<div class="funnel-row"><span class="stage-index">0${i+1}</span><div class="funnel-body"><div><span>${['Inquiry','Qualified','Sample requested','In trial','Feedback received'][i]}</span><strong>${n}</strong></div><div class="track"><span style="width:${s.total ? n/s.total*100 : 0}%;background:${['#184833','#426647','#738348','#9aa34e','#bcc590'][i]}"></span></div></div></div>`).join('');
   document.querySelector('#channels').innerHTML = sourceValues('channel', channels).map((channel,i) => { const n = records.filter(l=>l.channel===channel).length; return `<div class="channel-row"><div><span class="channel-dot dot-${i}"></span><span>${escape(channel)}</span><strong>${n}</strong></div><div class="track"><span style="width:${s.total ? n/s.total*100 : 0}%;background:${['#24523d','#869843','#465c6e','#bdc69b'][i % 4]}"></span></div></div>`; }).join('');
   document.querySelector('#messages').innerHTML = sourceValues('message', messages).map((message,i)=> { const group = records.filter(l=>l.message===message); const n=group.filter(l=>l.stage>=2).length; return `<div class="message-row"><span class="message-index">${String.fromCharCode(65+i)}</span><div><div class="message-title"><strong>${escape(message)}</strong><b>${group.length ? (n/group.length*100).toFixed(0) : '0'}%</b></div><p>${n} sample requests / ${group.length} inquiries</p><div class="track"><span style="width:${group.length ? n/group.length*100 : 0}%"></span></div></div></div>`; }).join('');
@@ -115,6 +117,28 @@ function render() {
   document.querySelector('#responses').textContent = `${feedback.length} responses`;
   document.querySelector('#feedback').innerHTML = feedback.length ? ['comfort','grip','durability'].map(key=> { const rated=feedback.filter(l=>Number.isFinite(l.feedback[key])); const avg=rated.length ? rated.reduce((sum,l)=>sum+l.feedback[key],0)/rated.length : null; return `<div class="rating-row"><span>${key[0].toUpperCase()+key.slice(1)}</span><div class="rating-track"><span style="width:${avg/5*100}%"></span></div><strong>${avg === null ? '—' : avg.toFixed(1)}<small> / 5 · n=${rated.length}</small></strong></div>`; }).join('') + `<div class="feedback-insight">${icon('chat')}<p><strong>Next research question</strong>How does the material feel during a full shift? Collect context with each rating.</p></div>` : '<div class="empty-state">No feedback in this selection.<br>Try a broader date range or audience.</div>';
   renderTable(records);
+}
+function renderInterest(records) {
+  document.querySelector('#interest-source').textContent = imported ? 'IMPORTED DATA' : 'DEMO DATA';
+  document.querySelector('#interest-basis').textContent = `Based on ${records.length} ${records.length === 1 ? 'lead' : 'leads'} in the current filters. Interest = sample requested or later. Ranked by request count, not conversion rate or proven effectiveness.`;
+  document.querySelector('#interest-results').innerHTML = [['audience', 'Audience'], ['message', 'Message'], ['channel', 'Marketing channel']].map(([field, title]) => {
+    const { max, leaders } = interestLeaders(records, field);
+    let headline, detail;
+    if (!records.length) {
+      headline = 'No matching leads'; detail = 'Broaden the filters to see interest.';
+    } else if (!max) {
+      headline = 'No sample requests yet'; detail = 'There is no leader to report in this selection.';
+    } else {
+      const names = leaders.slice(0,3).map(group => field === 'message' && group.label === 'Unspecified' ? 'Unspecified (message not recorded)' : group.label);
+      headline = names.join(' · ') + (leaders.length > 3 ? ` · +${leaders.length - 3} others` : '');
+      if (leaders.length > 1) detail = `Tied: ${max} sample ${max === 1 ? 'request' : 'requests'} each.`;
+      else {
+        const total = leaders[0].total;
+        detail = `${max} sample ${max === 1 ? 'request' : 'requests'} from ${total} ${total === 1 ? 'inquiry' : 'inquiries'} (${(max / total * 100).toFixed(0)}%).`;
+      }
+    }
+    return `<div class="interest-item" data-interest="${field}"><span>${title}</span><strong>${escape(headline)}</strong><p>${escape(detail)}</p></div>`;
+  }).join('');
 }
 function renderTable(records = currentRecords()) {
   const query = document.querySelector('#search').value.toLowerCase().trim();

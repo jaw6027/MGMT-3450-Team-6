@@ -31,6 +31,10 @@ try {
   await page.getByRole('button',{name:'Import records',exact:true}).click();
   await expect(page.locator('.metric strong').first()).toHaveText('3');
   await expect(page.locator('.demo-pill')).toContainText('Imported data');
+  await expect(page.locator('#interest-source')).toHaveText('IMPORTED DATA');
+  await expect(page.locator('[data-interest="audience"]')).toContainText('HSE manager · Procurement');
+  await expect(page.locator('[data-interest="message"]')).toContainText('New outreach · Material footprint');
+  await expect(page.locator('[data-interest="channel"]')).toContainText('Tied: 1 sample request each.');
   await expect(page.locator('#period')).toHaveValue('all');
   await expect(page.locator('#lead-rows')).toContainText('Example, "Field Services"');
   await expect(page.locator('#messages')).toContainText('<b>New</b>');
@@ -40,11 +44,22 @@ try {
   await expect(page.locator('.metric strong').first()).toHaveText('2');
   await page.locator('#audience').selectOption('HSE manager');
   await expect(page.locator('.metric strong').first()).toHaveText('1');
+  await expect(page.locator('[data-interest="audience"]')).toContainText('1 sample request from 1 inquiry (100%).');
+  await page.locator('#audience').selectOption('Operations');
+  await expect(page.locator('[data-interest="message"]')).toContainText('No sample requests yet');
+  await page.locator('#channel').selectOption('LinkedIn');
+  await expect(page.locator('[data-interest="channel"]')).toContainText('No matching leads');
+  await page.locator('#channel').selectOption('Referral');
+  await page.locator('#audience').selectOption('HSE manager');
   await page.getByRole('button',{name:/Edit Example/}).click();
   await page.getByLabel('Team owner').fill('Laura updated');
   await page.getByRole('button',{name:'Save follow-up'}).click();
   await page.reload();
   await expect(page.locator('.metric strong').first()).toHaveText('3');
+  await page.locator('#period').selectOption('7');
+  await expect(page.locator('[data-interest="audience"]')).toContainText('Procurement');
+  await expect(page.locator('[data-interest="audience"]')).not.toContainText('HSE manager');
+  await page.locator('#period').selectOption('all');
   await expect(page.locator('#lead-rows')).toContainText('Laura updated');
   const exporting=page.waitForEvent('download');
   await page.getByRole('button',{name:'Export leads'}).click();
@@ -74,6 +89,7 @@ try {
   await page.getByRole('button',{name:'Use demo data',exact:true}).click();
   await expect(page.locator('.metric strong').first()).toHaveText('48');
   await expect(page.locator('.demo-pill')).toContainText('Demo workspace');
+  await expect(page.locator('#interest-source')).toHaveText('DEMO DATA');
   assert.deepEqual(errors,[]);
   console.log('CSV browser checks passed: template, validation, preview, import, custom filters, dates, partial ratings, safe text, saved edits, reload, export, storage failure, mobile, and demo restore.');
 } finally {await browser.close();}

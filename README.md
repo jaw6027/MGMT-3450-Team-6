@@ -17,6 +17,7 @@ Vite listens on port 5173 by default and binds to all interfaces. No API keys, d
 
 - Date, first-touch channel, and buyer role filters update every metric and chart.
 - Customer journey, message comparison, and trial feedback views derive from the same lead records.
+- **What's getting the most interest?** summarizes the leading audience, message, and marketing channel by sample-request count within the current filters. Sample requested, in trial, and feedback received each count once per lead. Ties are explicit, zero requests produce no leader, and an empty selection prompts broader filters. Each single leader shows requests, inquiries, and its request rate for context; the ranking uses volume, not rate or causal effectiveness. Demo and imported summaries are labeled separately.
 - Search the follow-up table; the first eight matching leads are displayed. Narrow filters or search to find other leads.
 - Edit each lead's owner and next action. Updates persist in this browser's local storage; they are not shared across users or devices. Clearing site data resets edits.
 - Export all leads matching the three dashboard filters to CSV, including saved follow-up updates. Company search only narrows the on-screen table, not the export.
