@@ -41,7 +41,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth));
   await page.getByRole('button',{name:/Edit /}).first().click();
-  assert.ok(await page.locator('dialog').isVisible());
+  assert.ok(await page.locator('#edit-dialog').isVisible());
   await page.keyboard.press('Escape');
   await page.screenshot({path:'/tmp/beyond-dashboard-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);

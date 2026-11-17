@@ -20,10 +20,36 @@ Vite listens on port 5173 by default and binds to all interfaces. No API keys, d
 - Search the follow-up table; the first eight matching leads are displayed. Narrow filters or search to find other leads.
 - Edit each lead's owner and next action. Updates persist in this browser's local storage; they are not shared across users or devices. Clearing site data resets edits.
 - Export all leads matching the three dashboard filters to CSV, including saved follow-up updates. Company search only narrows the on-screen table, not the export.
+- Import real lead records from CSV with validation and a preview before replacing the active data. Custom channels, buyer roles, and messages appear in the dashboard automatically.
+
+## Laura's CSV workflow
+
+1. Click **Import CSV**, then **Download CSV template**.
+2. Fill in one row per buyer conversation in Excel or Google Sheets. Keep the column headers; save as **CSV (comma delimited / UTF-8)**, not XLSX or a semicolon-delimited file.
+3. Choose the CSV. Fix any reported lead-row errors, review the lead count, then click **Import records**. Invalid imports leave existing records untouched; files are accepted as a whole, without silently skipping rows.
+4. The dashboard switches from demo to imported data and selects all imported dates. Importing replaces the previous imported records and their saved edits; export them first if needed. It never mixes real records with demo leads. Reimporting the same file replaces rather than duplicates its rows.
+5. Export updated records to share or back up the file. Reopen **Import CSV → Use demo data** to remove the imported data and its edits from this browser and restore the demo.
+
+Required columns: `Company`, `Buyer role`, `Channel`, `Inquiry date`, `Current stage`. Header names and stages are case-insensitive. Dates must be valid `YYYY-MM-DD` dates. Stages: `Inquiry`, `Qualified`, `Sample requested`, `In trial`, `Feedback received`.
+
+Optional columns: `Lead ID`, `Campaign/message`, `Comfort`, `Grip`, `Durability`, `Next action`, `Team owner`. Each lead ID must be unique; blank IDs are generated. Blank campaign and owner values become `Unspecified` and `Unassigned`. Ratings must be numbers from 1 to 5 or blank and require the `Feedback received` stage. Partial ratings are supported: each average excludes missing values and displays its own response count. A feedback-stage lead can have no ratings yet. The original export's JSON `Feedback` column is also supported. Extra columns are ignored; they are not retained in exports.
+
+Limits: 5 MB and 5,000 leads per file. Supported CSV features include UTF-8 BOM, quoted commas, escaped quotes, multiline fields, and CRLF/LF line endings. For imported data, the last 7/30-day filters end at the latest inquiry date in the CSV, displayed beside the filters; all dates includes every record. No date values or ratings are invented.
+
+Imports and follow-up edits are stored only in this browser's local storage, survive reload, and are not uploaded to a server or synchronized to other users/devices. Clearing browser/site data removes them; export a CSV backup. If storage is unavailable or full, the import is rejected without replacing active records. Imported data is treated as text when rendered, and CSV exports protect against spreadsheet formula execution.
+
+### Downloadable standalone dashboard
+
+Run `npm run build:standalone` to create `dist/Plant-Based-Leather-Dashboard.html` with scripts, styling, and fonts included. This file can be downloaded for local browser use. Its local-storage availability depends on browser policy. Cloud Chromium blocks `file://` navigation, so the standalone artifact is validated over HTTP with the same browser suites:
+
+```sh
+# With npm run preview -- --port 4173 running:
+TEST_URL=http://127.0.0.1:4173/Plant-Based-Leather-Dashboard.html npm run test:browser
+```
 
 ## Data and definitions
 
-All 48 lead records, organization names, channel results, and buyer ratings are fictional classroom demonstration data. The snapshot is fixed at November 17, 2026; periods are inclusive (last 7 days: Nov 11–17; last 30 days: Oct 19–Nov 17). This is not a live analytics feed.
+The initial 48 lead records, organization names, channel results, and buyer ratings are fictional classroom demonstration data. The demo snapshot is fixed at November 17, 2026; periods are inclusive (last 7 days: Nov 11–17; last 30 days: Oct 19–Nov 17). CSV imports replace this demo with user-supplied records and display an imported-data label. Neither mode is a live analytics feed.
 
 Data lives in `src/data.js`; presentation and interactions are in `src/main.js`, with responsive styling in `src/style.css`.
 
@@ -39,7 +65,7 @@ Data lives in `src/data.js`; presentation and interactions are in `src/main.js`,
 
 The supplied brochure is project context, not independently verified product evidence. Supplier material figures are not converted to per-glove savings; measurement basis and certification scope require confirmation. Finished-glove safety testing is pending. The dashboard's leaf is decorative artwork, not a product photograph.
 
-No marketing spending or revenue is fabricated. If added later, campaign spending should use a separate table to avoid counting it once per lead. Before connecting actual data, replace demo records through an agreed data source and add authentication and appropriate access controls for real buyer information. Current local storage is intended for demonstration only.
+No marketing spending or revenue is fabricated. If added later, campaign spending should use a separate table to avoid counting it once per lead. CSV import supports local use; a future shared team data service will need authentication and appropriate access controls.
 
 ## Validation
 

@@ -14,4 +14,5 @@ test('funnel counts are cumulative and conversion uses qualified leads', () => {
 test('CSV quotes commas and quotes and neutralizes spreadsheet formulas', () => {
   assert.equal(csvCell('A, "B"'), '"A, ""B"""');
   assert.equal(csvCell('=SUM(A1)'), '"\'=SUM(A1)"');
+  assert.equal(csvCell('  =SUM(A1)'), '"\'  =SUM(A1)"');
 });

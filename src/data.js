@@ -17,9 +17,11 @@ export const leads = Array.from({ length: 48 }, (_, i) => ({
   feedback: i % 5 === 4 ? { comfort: 3 + (i % 3), grip: 3 + ((i + 1) % 3), durability: 2 + (i % 4) } : null,
 }));
 
-export function filterLeads(records, filters) {
-  const start = filters.period === '7' ? '2026-11-11' : filters.period === '30' ? '2026-10-19' : '2026-01-01';
-  return records.filter(l => l.date >= start && l.date <= '2026-11-17' &&
+export function filterLeads(records, filters, end = '2026-11-17') {
+  const date = new Date(`${end}T00:00:00Z`);
+  if (filters.period !== 'all') date.setUTCDate(date.getUTCDate() - (filters.period === '7' ? 6 : 29));
+  const start = filters.period === 'all' ? '' : date.toISOString().slice(0, 10);
+  return records.filter(l => l.date >= start && (filters.period === 'all' || l.date <= end) &&
     (filters.channel === 'All channels' || l.channel === filters.channel) &&
     (filters.audience === 'All audiences' || l.audience === filters.audience));
 }
@@ -35,6 +37,6 @@ export function summarize(records) {
 // Protect spreadsheet users from formula interpretation when exporting free text.
 export function csvCell(value) {
   let text = String(value ?? '');
-  if (/^[=+@\-\t\r]/.test(text)) text = `'${text}`;
+  if (/^\s*[=+@\-]/.test(text) || /^[\t\r]/.test(text)) text = `'${text}`;
   return `"${text.replaceAll('"', '""')}"`;
 }

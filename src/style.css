@@ -17,3 +17,14 @@
 .stage{font-size:10px}thead{font-size:10px}
 
 .edit-button svg{width:13px;height:13px;vertical-align:middle}.light-pill svg{width:10px;height:10px}
+
+.page-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.button:disabled{opacity:.45;cursor:not-allowed}
+.import-help{font-size:12px;line-height:1.8;color:#67775c;margin:17px 0}
+.import-help summary{cursor:pointer;font-weight:600}.import-help p{margin-top:8px}
+#import-dialog{width:580px}#import-dialog input[type=file]{font-size:12px;max-width:100%}
+#import-error{color:#a33e2f;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+#import-preview{color:#426538;font-size:12px;line-height:1.8;margin-top:12px}
+.message-title{gap:12px}.message-title strong,.channel-row>div>span:nth-child(2){overflow-wrap:anywhere;min-width:0}
+#lead-rows td:first-child{white-space:normal;overflow-wrap:anywhere;min-width:150px;max-width:240px}
+@media(max-width:620px){.page-heading{flex-wrap:wrap}.page-actions{width:100%;justify-content:flex-start;margin-top:8px}.page-heading .page-actions .button{font-size:11px;margin-top:0;padding:10px 12px}.page-actions .button svg{width:14px;height:14px}.dialog-buttons{flex-wrap:wrap}.rating-row{gap:9px}.rating-row small{font-size:8px}}
