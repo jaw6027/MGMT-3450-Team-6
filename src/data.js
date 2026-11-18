@@ -12,7 +12,7 @@ export const leads = Array.from({ length: 48 }, (_, i) => ({
   message: messages[Math.floor(i / 4) % 3],
   date: `2026-${i < 12 ? '10' : '11'}-${String(i < 12 ? 20 + (i % 10) : 1 + (i % 17)).padStart(2, '0')}`,
   stage: i % 5,
-  owner: ['Laura', 'Team 6', 'Research team'][i % 3],
+  owner: 'Laura',
   nextAction: ['Confirm buyer needs', 'Schedule discovery call', 'Arrange sample preview', 'Check trial progress', 'Review feedback'][i % 5],
   feedback: i % 5 === 4 ? { comfort: 3 + (i % 3), grip: 3 + ((i + 1) % 3), durability: 2 + (i % 4) } : null,
 }));

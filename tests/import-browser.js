@@ -23,7 +23,7 @@ try {
     ['REAL-2','Second buyer','Procurement','LinkedIn','Material footprint','2027-01-01','Sample requested','','','','Schedule preview','Team 6'],
     ['REAL-3','<img src=x onerror=alert(1)>','Operations','Referral','<b>New</b>','2026-12-31','Inquiry','','','','','Laura'],
   ];
-  const csv=[csvHeaders,...rows].map(r=>r.map(csvCell).join(',')).join('\r\n');
+  const csv=[csvHeaders,...rows.map(row=>[...row,...Array(csvHeaders.length-row.length).fill('')])].map(r=>r.map(csvCell).join(',')).join('\r\n');
   await upload(csv);
   await expect(page.locator('#import-preview')).toContainText('Ready: 3 leads');
   // Preview must not modify the active data.
@@ -52,8 +52,8 @@ try {
   await page.locator('#channel').selectOption('Referral');
   await page.locator('#audience').selectOption('HSE manager');
   await page.getByRole('button',{name:/Edit Example/}).click();
-  await page.getByLabel('Team owner').fill('Laura updated');
-  await page.getByRole('button',{name:'Save follow-up'}).click();
+  await page.getByLabel('Owner',{exact:true}).fill('Laura updated');
+  await page.getByRole('button',{name:'Save lead'}).click();
   await page.reload();
   await expect(page.locator('.metric strong').first()).toHaveText('3');
   await page.locator('#period').selectOption('7');

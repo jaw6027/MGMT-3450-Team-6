@@ -1,6 +1,7 @@
 import { stages, csvCell } from './data.js';
+import { detailColumns, validateDetails } from './personal-data.js';
 
-export const csvHeaders = ['Lead ID', 'Company', 'Buyer role', 'Channel', 'Campaign/message', 'Inquiry date', 'Current stage', 'Comfort', 'Grip', 'Durability', 'Next action', 'Team owner'];
+export const csvHeaders = ['Lead ID', 'Company', 'Buyer role', 'Channel', 'Campaign/message', 'Inquiry date', 'Current stage', 'Comfort', 'Grip', 'Durability', 'Next action', 'Owner', ...detailColumns.map(([,label])=>label)];
 const required = ['Company', 'Buyer role', 'Channel', 'Inquiry date', 'Current stage'];
 export const MAX_ROWS = 5000;
 export const MAX_BYTES = 5 * 1024 * 1024;
@@ -71,13 +72,20 @@ export function importLeads(text) {
       }
     }
     if (Object.keys(ratings).length && stage !== 4) fail('ratings require the Feedback received stage. Leave ratings blank until feedback is collected.');
-    return { id, company:get('Company'), audience:get('Buyer role'), channel:get('Channel'), message:get('Campaign/message') || 'Unspecified', date, stage, owner:get('Team owner') || 'Unassigned', nextAction:get('Next action'), feedback:Object.keys(ratings).length ? ratings : null };
+    const lead={ id, company:get('Company'), audience:get('Buyer role'), channel:get('Channel'), message:get('Campaign/message') || 'Unspecified', date, stage, owner:get('Owner') || get('Team owner') || 'Unassigned', nextAction:get('Next action'), feedback:Object.keys(ratings).length ? ratings : null };
+    const details=Object.fromEntries(detailColumns.map(([key,label])=>[key,get(label)]));
+    if(details.followUpDone) {
+      if(!['yes','no','true','false'].includes(details.followUpDone.toLowerCase()))fail('Follow-up complete must be Yes, No, or blank.');
+      details.followUpDone=['yes','true'].includes(details.followUpDone.toLowerCase());
+    }
+    try { return {...lead,...validateDetails({...lead,...details})}; } catch(error) { fail(error.message); }
   });
 }
 
-export function exportLeads(records) {
-  const rows = records.map(l => [l.id,l.company,l.audience,l.channel,l.message,l.date,stages[l.stage],l.feedback?.comfort ?? '',l.feedback?.grip ?? '',l.feedback?.durability ?? '',l.nextAction,l.owner]);
-  return [csvHeaders,...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
+export function exportLeads(records, {spreadsheetSafe = true} = {}) {
+  const rows = records.map(l => [l.id,l.company,l.audience,l.channel,l.message,l.date,stages[l.stage],l.feedback?.comfort ?? '',l.feedback?.grip ?? '',l.feedback?.durability ?? '',l.nextAction,l.owner,...detailColumns.map(([key])=>key==='followUpDone' ? l[key] ? 'Yes' : '' : l[key] ?? '')]);
+  const quote=spreadsheetSafe ? csvCell : value=>`"${String(value ?? '').replaceAll('"','""')}"`;
+  return [csvHeaders,...rows].map(row => row.map(quote).join(',')).join('\r\n');
 }
 
 export function templateCSV() { return csvHeaders.map(csvCell).join(',') + '\r\n'; }

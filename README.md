@@ -1,6 +1,6 @@
 # Beyond Traditional Leather — marketing dashboard
 
-A one-page dashboard for Team 6's early-stage plant-based work glove concept for the oil and gas industry. Uses the supplied brochure's forest green, olive, slate, and white palette.
+A personal dashboard for Laura Carrillo's early-stage plant-based work glove concept for the oil and gas industry. Uses the supplied brochure's forest green, olive, slate, and white palette. Laura is the sole intended user; no team accounts, shared editing, or server database are required.
 
 ## Run locally
 
@@ -19,9 +19,20 @@ Vite listens on port 5173 by default and binds to all interfaces. No API keys, d
 - Customer journey, message comparison, and trial feedback views derive from the same lead records.
 - **What's getting the most interest?** summarizes the leading audience, message, and marketing channel by sample-request count within the current filters. Sample requested, in trial, and feedback received each count once per lead. Ties are explicit, zero requests produce no leader, and an empty selection prompts broader filters. Each single leader shows requests, inquiries, and its request rate for context; the ranking uses volume, not rate or causal effectiveness. Demo and imported summaries are labeled separately.
 - Search the follow-up table; the first eight matching leads are displayed. Narrow filters or search to find other leads.
-- Edit each lead's owner and next action. Updates persist in this browser's local storage; they are not shared across users or devices. Clearing site data resets edits.
+- Add leads directly, then edit buyer information, stage, owner, next action, follow-up date, sample milestones, trial ratings, and buyer comments. Updates persist in this browser's local storage; they are not shared across devices. Clearing site data resets saved information.
 - Export all leads matching the three dashboard filters to CSV, including saved follow-up updates. Company search only narrows the on-screen table, not the export.
 - Import real lead records from CSV with validation and a preview before replacing the active data. Custom channels, buyer roles, and messages appear in the dashboard automatically.
+
+## Laura's personal workbench
+
+- **Add lead:** opens a buyer conversation form. Saving the first personal lead while viewing demo data creates a separate personal list containing that lead; it never copies fictional buyers into Laura's real list. Existing imported leads can be edited and new leads added to that list. Required fields are company, buyer role, channel, inquiry date, and stage. Owner defaults to Laura.
+- **Follow-up reminders:** choose a date and next action in the lead editor. The workbench lists overdue, due-today, and upcoming follow-ups through the next seven days, across all active leads. Calendar dates use America/Los_Angeles. **Done** removes an item from the reminder list without deleting its date; uncheck **Follow-up complete** in the lead editor to reopen it. These are on-dashboard reminders, not email or push notifications.
+- **Sample tracker:** record actual requested, sent, received, and evaluated dates in each lead. Dates must not precede the inquiry, each later milestone needs its predecessor, and milestones must be chronological. Select Sample requested or a later stage first. A stage alone does not fabricate shipping dates; missing dates are labeled as not recorded. Search samples by company; the first eight matches are displayed.
+- **Buyer feedback:** record optional comfort, grip, durability, price, and purchasing-concern comments. Ratings remain optional 1–5 values and require Feedback received. Missing ratings are excluded from means. Text comments are shown in expandable buyer notes, with an edit button; the first six records with comments are shown, and other records can be found in the lead table. Comments and ratings do not establish certified safety performance.
+- **Personal goals:** editable targets for buyer conversations, sample requests, and feedback responses. Starter targets are 20/10/5. Progress uses all active leads, independent of dashboard filters; counts above target remain visible while the progress bar caps at 100%. Goals are planning targets, not forecasts.
+- **Campaign costs:** add a campaign name, channel, and actual cumulative total spent in USD. Update this single total as spending changes; do not repeat it per lead. Assign each relevant lead to its campaign through **Campaign for cost tracking**. Cost per sample request divides campaign spend by unique assigned leads at Sample requested or later. It displays Not available when no requests are assigned. Spend and attribution use all dates and active leads, independent of dashboard filters. Unassigned/unknown campaign IDs are reported and excluded from campaign results. Use **Export costs** for a separate campaign CSV, including the IDs needed for lead attribution. No spending is fabricated.
+
+Demo and personal planning settings are isolated in separate browser storage keys. Goals and campaign costs remain in place when the lead CSV is replaced, so existing campaign IDs can be reused. Lead CSV exports include follow-up dates/completion, sample dates, comments, and campaign IDs; campaign totals are intentionally exported separately. Keep both exports as backups. Goals are saved locally and can be reentered using Edit goals if browser storage is cleared. This version has no account, cloud backup, automatic data synchronization, or background notifications.
 
 ## Laura's CSV workflow
 
@@ -33,7 +44,7 @@ Vite listens on port 5173 by default and binds to all interfaces. No API keys, d
 
 Required columns: `Company`, `Buyer role`, `Channel`, `Inquiry date`, `Current stage`. Header names and stages are case-insensitive. Dates must be valid `YYYY-MM-DD` dates. Stages: `Inquiry`, `Qualified`, `Sample requested`, `In trial`, `Feedback received`.
 
-Optional columns: `Lead ID`, `Campaign/message`, `Comfort`, `Grip`, `Durability`, `Next action`, `Team owner`. Each lead ID must be unique; blank IDs are generated. Blank campaign and owner values become `Unspecified` and `Unassigned`. Ratings must be numbers from 1 to 5 or blank and require the `Feedback received` stage. Partial ratings are supported: each average excludes missing values and displays its own response count. A feedback-stage lead can have no ratings yet. The original export's JSON `Feedback` column is also supported. Extra columns are ignored; they are not retained in exports.
+Optional columns: `Lead ID`, `Campaign/message`, `Comfort`, `Grip`, `Durability`, `Next action`, `Owner`, `Follow-up date`, `Follow-up complete`, `Sample requested date`, `Sample sent date`, `Sample received date`, `Sample evaluated date`, `Comfort notes`, `Grip notes`, `Durability notes`, `Price notes`, `Purchasing concerns`, `Campaign ID`. The legacy `Team owner` column is still accepted for compatibility. Each lead ID must be unique; blank IDs are generated. Blank message and owner values become `Unspecified` and `Unassigned`. Follow-up complete accepts Yes/No/True/False or blank. Optional dates use YYYY-MM-DD. Ratings must be numbers from 1 to 5 or blank and require the `Feedback received` stage. Partial ratings are supported: each average excludes missing values and displays its own response count. A feedback-stage lead can have no ratings yet. The original export's JSON `Feedback` column is also supported. Extra columns are ignored; they are not retained in exports.
 
 Limits: 5 MB and 5,000 leads per file. Supported CSV features include UTF-8 BOM, quoted commas, escaped quotes, multiline fields, and CRLF/LF line endings. For imported data, the last 7/30-day filters end at the latest inquiry date in the CSV, displayed beside the filters; all dates includes every record. No date values or ratings are invented.
 
@@ -66,7 +77,7 @@ Data lives in `src/data.js`; presentation and interactions are in `src/main.js`,
 
 The supplied brochure is project context, not independently verified product evidence. Supplier material figures are not converted to per-glove savings; measurement basis and certification scope require confirmation. Finished-glove safety testing is pending. The dashboard's leaf is decorative artwork, not a product photograph.
 
-No marketing spending or revenue is fabricated. If added later, campaign spending should use a separate table to avoid counting it once per lead. CSV import supports local use; a future shared team data service will need authentication and appropriate access controls.
+No marketing spending or revenue is fabricated. Campaign spending is entered and stored separately from lead records to avoid counting it once per lead. The dashboard is for Laura's personal use; team access is outside the requested scope.
 
 ## Validation
 
