@@ -4,6 +4,8 @@ import './style.css';
 import { leads, channels, audiences, stages, messages, filterLeads, summarize, interestLeaders } from './data.js';
 import { importLeads, exportLeads, templateCSV, MAX_BYTES } from './csv.js';
 import { mountPersonalTools } from './personal-tools.js';
+import { mountSharing } from './sharing.js';
+import { validateBackup } from './backup.js';
 
 const icons = {
   leaf: '<path d="M20 4C10 2 3 7 5 15c7 5 15 0 15-11Z"/><path d="M4 21 16 9M10 15v-5m0 5h5"/>',
@@ -31,7 +33,7 @@ try {
   if (saved) {
     const records = importLeads(saved.csv);
     const actions = Object.fromEntries(Object.entries(saved.actions || {}).filter(([, v]) => v && typeof v.owner === 'string' && typeof v.nextAction === 'string').map(([id,v]) => [id, {owner:v.owner,nextAction:v.nextAction}]));
-    imported = { csv:saved.csv, records, actions, origin:saved.origin === 'personal' ? 'personal' : 'csv' };
+    imported = { csv:saved.csv, records, actions, planner:saved.planner, origin:saved.origin === 'personal' ? 'personal' : 'csv' };
     filters.period = 'all';
   }
 } catch { importRestoreError = true; }
@@ -73,7 +75,7 @@ document.querySelector('#app').innerHTML = `
 </div>
 <dialog id="edit-dialog"><form id="edit-form"><div class="dialog-heading"><div><div class="eyebrow">LEAD FOLLOW-UP</div><h2 id="edit-company"></h2></div><button type="button" id="close-dialog" aria-label="Close dialog">×</button></div><p class="dialog-note">Updates are stored locally on this device. Export to share them.</p><input type="hidden" id="edit-id"><label>Owner<input id="edit-owner" required maxlength="80"></label><label>Next action<textarea id="edit-action" required maxlength="240" rows="3"></textarea></label><p id="save-error" role="alert"></p><div class="dialog-buttons"><button type="button" class="button" id="cancel-dialog">Cancel</button><button type="submit" class="button primary">Save follow-up</button></div></form></dialog>
 <dialog id="import-dialog" aria-labelledby="import-title"><div class="dialog-heading"><div><div class="eyebrow">YOUR SPREADSHEET → YOUR DASHBOARD</div><h2 id="import-title">Import lead data</h2></div><button type="button" id="close-import" aria-label="Close import">×</button></div>
-<p class="dialog-note">One row per buyer conversation. Importing replaces the active records and saved follow-up edits for the previous import. Export those first if you need a copy. Your CSV stays in this browser. Goals and campaign spending are kept separately and are not replaced by a lead import.</p>
+<p class="dialog-note">One row per buyer conversation. Importing replaces the active records and saved follow-up edits for the previous import. Export those first if you need a copy. Your CSV is saved locally; optional cloud copies follow Share & backup settings. Goals and campaign spending are preserved when replacing leads.</p>
 <button type="button" class="button" id="template">${icon('download')} Download CSV template</button>
 <p class="import-help">Fill the template in Excel or Google Sheets, then save as <strong>CSV (comma delimited / UTF-8)</strong>. Required: Company, Buyer role, Channel, Inquiry date (YYYY-MM-DD), and Current stage.</p>
 <details class="import-help"><summary>Allowed stages and optional fields</summary><p>Stages: ${stages.join(', ')}. Stage names are case-insensitive. Add a unique Lead ID to each row, or leave every ID blank to generate them. Campaign/message, Owner, and Next action are optional. Follow-up dates, sample milestones, buyer comments, and Campaign ID are also supported. Comfort, Grip, and Durability are optional ratings from 1 to 5; use them only for Feedback received leads. Leave uncollected ratings blank.</p></details>
@@ -88,7 +90,7 @@ function sourceValues(field, defaults) { return [...new Set([...(imported ? [] :
 function updateSourceUI() {
   const real = Boolean(imported);
   document.querySelector('.demo-pill').innerHTML = `<span></span> ${real ? imported.origin === 'personal' ? 'Personal data' : 'Imported data' : 'Demo workspace'}`;
-  document.querySelector('.data-note > span').textContent = real ? `${sourceRecords().length} personal leads. Stored only in this browser. Dates, ratings, and notes are entered by you; product claims are not verified by this dashboard.` : 'Illustrative data, real project direction. All organizations, leads, ratings, and outcomes below are simulated for this class project.';
+  document.querySelector('.data-note > span').textContent = real ? `${sourceRecords().length} personal leads. Saved on this device; manage optional cloud copies in Share & backup. Dates, ratings, and notes are entered by you; product claims are not verified by this dashboard.` : 'Illustrative data, real project direction. All organizations, leads, ratings, and outcomes below are simulated for this class project.';
   document.querySelector('.snapshot').textContent = real ? `${imported.origin === 'personal' ? 'Personal' : 'Imported'} cohort · latest inquiry ${endDate()}` : 'Fixed demo snapshot · Nov 17, 2026';
   document.querySelector('#period option[value="all"]').textContent = real ? 'All personal dates' : 'All demo dates';
   document.querySelector('#period').value = filters.period;
@@ -115,8 +117,8 @@ function saveLead(lead, isNew) {
   const records=isNew ? [lead,...previous] : previous.map(l=>l.id===lead.id?lead:l);
   const csv=exportLeads(records,{spreadsheetSafe:false}), validated=importLeads(csv);
   const origin=imported?.origin || 'personal';
-  localStorage.setItem('btl-import',JSON.stringify({csv,actions:{},origin}));
-  imported={csv,records:validated,actions:{},origin};
+  localStorage.setItem('btl-import',JSON.stringify({csv,actions:{},origin,planner:imported?.planner}));
+  imported={csv,records:validated,actions:{},origin,planner:imported?.planner};
   if(isNew) {Object.assign(filters,{period:'all',channel:'All channels',audience:'All audiences'});document.querySelector('#search').value='';}
 }
 function render() {
@@ -134,6 +136,7 @@ function render() {
   document.querySelector('#feedback').innerHTML = feedback.length ? ['comfort','grip','durability'].map(key=> { const rated=feedback.filter(l=>Number.isFinite(l.feedback[key])); const avg=rated.length ? rated.reduce((sum,l)=>sum+l.feedback[key],0)/rated.length : null; return `<div class="rating-row"><span>${key[0].toUpperCase()+key.slice(1)}</span><div class="rating-track"><span style="width:${avg/5*100}%"></span></div><strong>${avg === null ? '—' : avg.toFixed(1)}<small> / 5 · n=${rated.length}</small></strong></div>`; }).join('') + `<div class="feedback-insight">${icon('chat')}<p><strong>Next research question</strong>How does the material feel during a full shift? Collect context with each rating.</p></div>` : '<div class="empty-state">No feedback in this selection.<br>Try a broader date range or audience.</div>';
   renderTable(records);
   personal.render();
+  sharing.changed();
 }
 function renderInterest(records) {
   document.querySelector('#interest-source').textContent = imported ? imported.origin === 'personal' ? 'PERSONAL DATA' : 'IMPORTED DATA' : 'DEMO DATA';
@@ -208,7 +211,8 @@ fileInput.addEventListener('change',async()=>{
 });
 importButton.addEventListener('click',()=>{
   if(!pendingImport)return;
-  try {localStorage.setItem('btl-import',JSON.stringify({csv:pendingImport.csv,actions:{},origin:'csv'}));}
+  pendingImport.planner=imported ? personal.getPlanner() : undefined;
+  try {localStorage.setItem('btl-import',JSON.stringify({csv:pendingImport.csv,actions:{},origin:'csv',planner:pendingImport.planner}));}
   catch {importError.textContent='Browser storage is unavailable or full. No records were replaced. Enable local storage or try a smaller CSV.';return;}
   imported=pendingImport;pendingImport=null;
   Object.assign(filters,{period:'all',channel:'All channels',audience:'All audiences'});
@@ -217,13 +221,22 @@ importButton.addEventListener('click',()=>{
 });
 document.querySelector('#use-demo').addEventListener('click',()=>{
   if(imported && !window.confirm('Switch to demo data and remove the imported records and their saved edits from this browser? Export first if you need a copy.'))return;
-  try {localStorage.removeItem('btl-import');} catch {importError.textContent='Unable to update browser storage. No records were replaced.';return;}
+  try {if(imported)localStorage.setItem('btl-planner-real',JSON.stringify(personal.getPlanner()));localStorage.removeItem('btl-import');} catch {importError.textContent='Unable to update browser storage. No records were replaced.';return;}
   imported=null;Object.assign(filters,{period:'30',channel:'All channels',audience:'All audiences'});
   document.querySelector('#search').value='';importDialog.close();render();toast('Demo data restored');
 });
 let toastTimer;
 function toast(message){const el=document.querySelector('#toast');el.textContent=message;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3500);}
-const personal=mountPersonalTools({getAll:allRecords,isDemo:()=>!imported,saveLead,refresh:render,notify:toast,download:downloadCSV});
+const personal=mountPersonalTools({getAll:allRecords,isDemo:()=>!imported,saveLead,refresh:render,notify:toast,download:downloadCSV,readPersonalPlanner:()=>imported?.planner,writePersonalPlanner:planner=>{
+  const next={csv:imported.csv,actions:imported.actions,origin:imported.origin,planner};
+  localStorage.setItem('btl-import',JSON.stringify(next));imported.planner=planner;
+}});
+const sharing=mountSharing({getAll:allRecords,getFiltered:currentRecords,getPlanner:personal.getPlanner,isDemo:()=>!imported,notify:toast,describeFilters:()=>`Period: ${document.querySelector('#period option:checked').textContent} (ending ${endDate()}) · Channel: ${filters.channel} · Audience: ${filters.audience}`,restore:value=>{
+  const copy=validateBackup(value),records=importLeads(copy.csv);
+  const next={csv:copy.csv,actions:{},origin:'personal',planner:copy.planner};
+  localStorage.setItem('btl-import',JSON.stringify(next));imported={...next,records};
+  personal.reloadPlanner();Object.assign(filters,{period:'all',channel:'All channels',audience:'All audiences'});document.querySelector('#search').value='';render();
+}});
 render();
 if(importRestoreError) toast('Could not restore imported data. Showing demo data; re-import your CSV to try again.');
 else if(!storageAvailable) toast('Local storage is unavailable. Viewing and exporting still work.');

@@ -5,17 +5,17 @@ import { defaultGoals, detailColumns, todayPacific, dueFollowUps, sampleStatus, 
 const esc=value=>String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=value=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value);
 
-export function mountPersonalTools({getAll,isDemo,saveLead,refresh,notify,download}) {
+export function mountPersonalTools({getAll,isDemo,saveLead,refresh,notify,download,readPersonalPlanner,writePersonalPlanner}) {
   let planner={goals:{...defaultGoals},campaigns:[]}, plannerContext, plannerWarning='', showAllReminders=false;
   function loadPlanner() {
     const context=isDemo()?'demo':'real';if(context===plannerContext)return;
     plannerContext=context;plannerWarning='';
-    try { planner=validatePlanner(JSON.parse(localStorage.getItem(`btl-planner-${context}`) || JSON.stringify({goals:defaultGoals,campaigns:[]}))); }
+    try { planner=validatePlanner((context==='real' && readPersonalPlanner?.()) || JSON.parse(localStorage.getItem(`btl-planner-${context}`) || JSON.stringify({goals:defaultGoals,campaigns:[]}))); }
     catch {planner={goals:{...defaultGoals},campaigns:[]};plannerWarning='Saved goals or costs could not be read. Export your existing browser data before replacing them.';}
   }
   function savePlanner(next) {
     const valid=validatePlanner(next);
-    try {localStorage.setItem(`btl-planner-${plannerContext}`,JSON.stringify(valid));}
+    try {if(plannerContext==='real' && writePersonalPlanner)writePersonalPlanner(valid);else localStorage.setItem(`btl-planner-${plannerContext}`,JSON.stringify(valid));}
     catch {throw new Error('Browser storage is unavailable or full. Your changes were not saved.');}
     planner=valid;plannerWarning='';
   }
@@ -33,7 +33,7 @@ export function mountPersonalTools({getAll,isDemo,saveLead,refresh,notify,downlo
   `);
   const dialog=document.querySelector('#edit-dialog');
   dialog.setAttribute('aria-labelledby','edit-company');
-  dialog.querySelector('.dialog-note').textContent='Manage this buyer conversation, follow-up, sample milestones, and feedback. Changes stay in this browser.';
+  dialog.querySelector('.dialog-note').textContent='Manage this buyer conversation, follow-up, sample milestones, and feedback. Changes save on this device; optional cloud copies follow your Share & backup settings.';
   document.querySelector('#edit-owner').closest('label').firstChild.textContent='Owner';
   document.querySelector('#edit-action').required=false;
   document.querySelector('#edit-form button[type=submit]').textContent='Save lead';
@@ -134,7 +134,7 @@ export function mountPersonalTools({getAll,isDemo,saveLead,refresh,notify,downlo
   function render() {
     loadPlanner();const records=getAll(),today=todayPacific();
     document.querySelector('#planner-warning').textContent=plannerWarning;
-    document.querySelector('#planner-mode').textContent=isDemo() ? 'Demo view: Add lead starts your personal buyer list. Goals and costs edited in this view belong only to the demo.' : 'Personal view: your leads, follow-ups, goals, and spending stay on this device.';
+    document.querySelector('#planner-mode').textContent=isDemo() ? 'Demo view: Add lead starts your personal buyer list. Goals and costs edited in this view belong only to the demo.' : 'Personal view: your leads, follow-ups, goals, and spending save on this device. Share & backup manages copies.';
     document.querySelector('#reminder-date').textContent=`Overdue, today, and next 7 days · ${today} (Los Angeles) · all leads`;
     const due=dueFollowUps(records,today);
     document.querySelector('#reminders').innerHTML=due.length ? due.slice(0,showAllReminders?due.length:6).map(l=>`<div class="reminder"><div><strong>${esc(l.company)}</strong><p><span class="${l.dueDate<today?'overdue':''}">${l.dueDate<today?'Overdue':l.dueDate===today?'Due today':'Upcoming'} · ${esc(l.dueDate)}</span> · ${esc(l.nextAction || 'Choose next action')}</p></div><div>${editButton(l,'Open')} <button class="button" data-complete-lead="${esc(l.id)}">Done</button></div></div>`).join('')+`<p class="planner-caption">${due.length} follow-ups due through the next 7 days. Completed follow-ups are excluded.</p>${due.length>6?`<button class="button" data-toggle-reminders>${showAllReminders?'Show fewer':'Show all due follow-ups'}</button>`:''}` : '<p class="empty-state">Nothing due in the next 7 days. Add a follow-up date to a lead to see a reminder here.</p>';
@@ -148,5 +148,5 @@ export function mountPersonalTools({getAll,isDemo,saveLead,refresh,notify,downlo
     const unassigned=records.filter(l=>!planner.campaigns.some(c=>c.id===l.campaignId)).length;
     document.querySelector('#cost-basis').textContent=`Total recorded spend: ${money(costs.reduce((sum,c)=>sum+c.spendCents,0)/100)}. Cost per request = campaign’s total spend ÷ assigned leads reaching Sample requested or later. Spend is counted once per campaign. ${unassigned} leads have no matching campaign; they are excluded from campaign costs. Export costs separately from leads. ${isDemo()?'This is the demo planner.':'This is your personal planner.'}`;
   }
-  return {render,openLead};
+  return {render,openLead,getPlanner:()=>{loadPlanner();return structuredClone(planner);},reloadPlanner:()=>{plannerContext=undefined;}};
 }

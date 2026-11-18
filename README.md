@@ -1,6 +1,6 @@
 # Beyond Traditional Leather — marketing dashboard
 
-A personal dashboard for Laura Carrillo's early-stage plant-based work glove concept for the oil and gas industry. Uses the supplied brochure's forest green, olive, slate, and white palette. Laura is the sole intended user; no team accounts, shared editing, or server database are required.
+A personal dashboard for Laura Carrillo's early-stage plant-based work glove concept for the oil and gas industry. Uses the supplied brochure's forest green, olive, slate, and white palette. Laura is the sole editor. Local use and sharing reports need no account; optional private cloud sign-in/backups use Supabase and require the [one-time setup](cloud/SETUP.md).
 
 ## Run locally
 
@@ -11,7 +11,13 @@ npm ci --cache /tmp/team6-npm-cache
 npm run dev
 ```
 
-Vite listens on port 5173 by default and binds to all interfaces. No API keys, database, or external services are required. Fonts are bundled locally. Use `npm run build` to produce `dist/`; `npm run preview` serves that build.
+Vite listens on port 5173 by default and binds to all interfaces. For local use, no API keys, database, or external services are required. Fonts are bundled locally. Use `npm run build` to produce `dist/`; `npm run preview` serves that build.
+
+## Sharing, complete backups, and private sign-in
+
+Open **Share & backup** to download a read-only report for others, download a complete private JSON backup (including goals and campaign spending), or restore one with a preview and explicit confirmation. Reports follow the current filters and exclude private lead rows/notes; optional planning details require a checkbox. Complete backups include all personal data and are intended for private recovery. No public sharing link is created, and files are never sent to anyone automatically.
+
+Secure email-code sign-in, optional automatic cloud snapshots, and cloud restore are implemented for Supabase. They are **not active until Laura's project, Auth user/email delivery, database security policies, and public connection configuration are set up**. See [cloud/SETUP.md](cloud/SETUP.md) and [cloud/supabase.sql](cloud/supabase.sql). No live cloud provider was connected or live email delivery tested during development. Signing in protects cloud copies; local browser records remain available on the device. Backup is distinct from automatic multi-device editing/synchronization.
 
 ## What works
 
@@ -32,7 +38,7 @@ Vite listens on port 5173 by default and binds to all interfaces. No API keys, d
 - **Personal goals:** editable targets for buyer conversations, sample requests, and feedback responses. Starter targets are 20/10/5. Progress uses all active leads, independent of dashboard filters; counts above target remain visible while the progress bar caps at 100%. Goals are planning targets, not forecasts.
 - **Campaign costs:** add a campaign name, channel, and actual cumulative total spent in USD. Update this single total as spending changes; do not repeat it per lead. Assign each relevant lead to its campaign through **Campaign for cost tracking**. Cost per sample request divides campaign spend by unique assigned leads at Sample requested or later. It displays Not available when no requests are assigned. Spend and attribution use all dates and active leads, independent of dashboard filters. Unassigned/unknown campaign IDs are reported and excluded from campaign results. Use **Export costs** for a separate campaign CSV, including the IDs needed for lead attribution. No spending is fabricated.
 
-Demo and personal planning settings are isolated in separate browser storage keys. Goals and campaign costs remain in place when the lead CSV is replaced, so existing campaign IDs can be reused. Lead CSV exports include follow-up dates/completion, sample dates, comments, and campaign IDs; campaign totals are intentionally exported separately. Keep both exports as backups. Goals are saved locally and can be reentered using Edit goals if browser storage is cleared. This version has no account, cloud backup, automatic data synchronization, or background notifications.
+Demo and personal planning settings are isolated. Goals and campaign costs remain in place when the lead CSV is replaced, so existing campaign IDs can be reused. Lead CSV exports include follow-up dates/completion, sample dates, comments, and campaign IDs; campaign totals are intentionally exported separately. A complete JSON backup includes both leads and planning settings for one-step recovery. Configured cloud copies include the same full data. There is no automatic multi-device merge or background reminder service.
 
 ## Laura's CSV workflow
 
@@ -48,7 +54,7 @@ Optional columns: `Lead ID`, `Campaign/message`, `Comfort`, `Grip`, `Durability`
 
 Limits: 5 MB and 5,000 leads per file. Supported CSV features include UTF-8 BOM, quoted commas, escaped quotes, multiline fields, and CRLF/LF line endings. For imported data, the last 7/30-day filters end at the latest inquiry date in the CSV, displayed beside the filters; all dates includes every record. No date values or ratings are invented.
 
-Imports and follow-up edits are stored only in this browser's local storage, survive reload, and are not uploaded to a server or synchronized to other users/devices. Clearing browser/site data removes them; export a CSV backup. If storage is unavailable or full, the import is rejected without replacing active records. Imported data is treated as text when rendered, and CSV exports protect against spreadsheet formula execution.
+Imports and follow-up edits are saved in this browser's local storage and survive reload. They are uploaded only when Laura connects, signs in, and uses cloud backup; there is no automatic multi-device merge. Clearing browser/site data removes them; export a CSV backup. If storage is unavailable or full, the import is rejected without replacing active records. Imported data is treated as text when rendered, and CSV exports protect against spreadsheet formula execution.
 
 ### Downloadable standalone dashboard
 
