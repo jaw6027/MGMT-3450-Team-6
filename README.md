@@ -4,6 +4,18 @@ A personal dashboard for Laura Carrillo's early-stage plant-based work glove con
 
 ## Run locally
 
+### View as a website with GitHub Pages
+
+The completed dashboard is also included as the self-contained `docs/index.html`, ready to serve as a website. In the GitHub repository, an owner/admin must open **Settings → Pages**, choose **Deploy from a branch**, select **main** and **/docs**, then click **Save**. This task cannot enable that setting because GitHub's settings API is inaccessible from the execution environment.
+
+After GitHub reports a successful Pages deployment, use the website address shown in that Pages settings screen. The expected project address is `https://jaw6027.github.io/MGMT-3450-Team-6/`, but it must not be treated as live until deployment and the page have been verified. The environment's network proxy currently blocks requests to that hostname, so public availability has not been verified here.
+
+The website serves the application and its clearly labeled demo records. Laura's personal records remain in her browser unless she explicitly uses configured cloud backup. Hosting does not activate Supabase sign-in or cloud backup; their separate one-time setup remains necessary. Data stored in a downloaded-file browser context does not automatically move to the website's browser storage: download a complete JSON backup in the old dashboard, then restore it in the website version.
+
+After future app changes, run `npm run build:pages`, validate the generated page, and commit the refreshed `docs/` files. GitHub Pages deploys committed contents of `/docs`; it does not run npm automatically in branch mode.
+
+### Development
+
 Requires Node.js 20.19+ or 22.12+ (tested with Node 24).
 
 ```sh
