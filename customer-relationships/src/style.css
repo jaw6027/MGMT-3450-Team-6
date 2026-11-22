@@ -7,3 +7,7 @@
 /* Anchor the visually hidden table heading inside its scroll container. */
 .table-wrap{position:relative}
 .icon{display:inline-block;width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}.brand-icon .icon{width:25px;height:25px}.hero a .icon{width:12px;height:12px;margin-left:8px}nav .icon{width:18px;height:18px}td .icon,.task .icon{width:11px;height:11px;margin-left:4px}
+
+.optional-details{border-top:1px solid #dfe7d5;padding-top:12px}.optional-details summary{cursor:pointer;font-weight:700;color:#365431;padding:10px 0}.optional-details .form-grid{margin-top:12px}.optional-details summary:focus-visible{outline:2px solid #456b3b;outline-offset:3px}.section-heading .actions{flex-wrap:wrap}#import-dialog p{line-height:1.8;font-size:14px}
+
+.crm-details{margin:18px 0;border:1px solid #dfe6d5;border-radius:9px;padding:0 18px;background:#fff}.crm-details>summary{cursor:pointer;font-weight:700;font-size:13px;color:#365431;padding:17px 0}.crm-details>summary:focus-visible{outline:2px solid #456b3b;outline-offset:3px}.crm-details[open]>summary{border-bottom:1px solid #e5ebdd;margin-bottom:15px}.crm-details>.card{border:0;box-shadow:none}.crm-details .hero{margin-top:12px}.recovery-actions{justify-content:flex-end;margin:10px 0 14px}
