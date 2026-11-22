@@ -55,3 +55,7 @@ PRODUCT_TEST_URL=http://127.0.0.1:4190/docs/product-development/ npm run test:pr
 ```
 
 The browser suites also cover planning, retests, photos, inventory, expenses, report privacy, email-code sign-in, a separate owner-bound cloud collection, automatic backup, failed-upload retry, cloud restore, and sign-out using intercepted service responses. No live sign-in email is sent during tests. Live provider policies, hosting, email delivery, and actual cloud persistence still require verification after setup. Chromium defaults to `/usr/bin/chromium`, configurable via `CHROMIUM_PATH`.
+
+## A calmer everyday view
+
+The home page focuses on next actions and upcoming tests, material comparison, and testing progress. Getting started, project totals, detailed comparisons, test records, and retesting history expand on request. More tools holds prototypes, photos, inventory, and expenses. Save/restore and Sign in & share remain accessible. Help explains saving and evidence. These layout changes preserve existing records and backup compatibility.

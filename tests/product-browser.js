@@ -8,6 +8,18 @@ try {
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(process.env.PRODUCT_TEST_URL || 'http://127.0.0.1:4190/docs/product-development/');
   await page.getByRole('heading',{name:'Product development.'}).waitFor();
+  // Daily view starts focused; secondary records are revealed deliberately.
+  await expect(page.locator('#attention')).toBeVisible();
+  await expect(page.locator('#materials')).toBeVisible();
+  await expect(page.locator('#testing-progress')).toBeVisible();
+  for(const id of ['getting-started','project-totals','comparison-details','test-record-details','prototypes-details','prototype-photos-details','inventory-details','development-costs-details','help']) {
+    await expect(page.locator('#'+id)).not.toHaveAttribute('open','');
+  }
+  await page.getByRole('link',{name:'? Help',exact:true}).click();
+  await expect(page.locator('#help')).toHaveAttribute('open','');
+  await page.locator('#help > summary').click();
+  for(const id of ['more-tools-panel','project-totals','comparison-details','prototypes-details','test-record-details'])await page.locator('#'+id+' > summary').click();
+
   await expect(page.locator('#mode')).toContainText('Demo workspace');
   await expect(page.locator('#metrics .metric strong').first()).toHaveText('3');
   await page.evaluate(()=>localStorage.setItem('btl-import','marketing-records-must-not-change'));
@@ -70,6 +82,7 @@ try {
   await expect(page.locator('#test-rows')).toContainText('18 N');
   assert.equal(await page.locator('#test-rows img').count(),0);
   await page.reload();
+  for(const id of ['more-tools-panel','project-totals','comparison-details','prototypes-details','test-record-details'])await page.locator('#'+id+' > summary').click();
   await expect(page.locator('#metrics .metric strong').nth(2)).toHaveText('1');
   const reportDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Download report',exact:true}).click();
   assert.deepEqual(await fs.readFile(await (await reportDownload).path()),pdf);
