@@ -111,3 +111,7 @@ npm run test:browser
 ```
 
 Browser checks use `/usr/bin/chromium`; override `CHROMIUM_PATH` for another Chromium executable and `TEST_URL` to test a production preview. Checks cover combined filters, persisted follow-up edits, filtered CSV export, search, mobile width, dialog behavior, and browser runtime errors. Screenshots are saved outside the repository in `/tmp/beyond-dashboard-{desktop,mobile}.png`.
+
+## Customer-facing venture website
+
+Laura’s public-facing venture introduction is separate from her dashboards. See [venture/README.md](venture/README.md) for the buyer-needs questionnaire, email-draft contact flow, truthful product status, and preview/build instructions. `npm run build:venture:pages` prepares `docs/venture/index.html`; public availability still requires a successful, verified GitHub Pages deployment.
