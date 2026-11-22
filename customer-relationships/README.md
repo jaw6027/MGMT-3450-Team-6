@@ -59,3 +59,7 @@ Two optional, collapsed sections inside each account keep relationship context t
 **Weekly outreach plan** is a collapsed section beneath the attention list. It uses the filtered workspace and the next seven Los Angeles calendar days, including overdue work. It groups target-identified prospects eligible for outreach, dated follow-ups through the window end, and sample feedback due or requested samples needing a discussion date. Future scheduled contacts beyond the window, recorded customers, and Not a fit accounts are excluded. Dates are never invented. Each group shows at most three accounts and its total; open an account to act, or use the full list for the rest. Priority orders undated new contacts. The plan is derived from records and does not contact anyone or track a separate weekly goal.
 
 All added fields survive local saving and full JSON backups. Private CSV exports include contacts as a quoted JSON cell plus concern fields. The shareable aggregate progress report excludes these private details. Older backups default to no extra contacts and an unrecorded concern. No new metrics, alerts, or required fields were added to the main page.
+
+## Excel example
+
+Practice files are in [examples](examples/README.md): an Excel workbook with fictional customer records and a separate CSV validated against the marketing-import workflow. The workbook’s Start here sheet explains which fields import and which remain in Excel. The workbook and CRM do not sync automatically.
