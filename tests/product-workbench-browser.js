@@ -63,7 +63,7 @@ try {
   assert.equal(backup.app,'laura-product-development');assert.equal(backup.project.expenses[0].amountCents,12525);assert.equal(backup.project.prototypes[0].photos[0].file.data,png);assert.ok(backup.project.tests.some(t=>t.retestOf));
   await page.getByRole('button',{name:'Close sharing',exact:true}).click();
   await page.getByRole('button',{name:'Update stock',exact:true}).click();
-  await page.getByLabel('Available quantity',{exact:true}).fill('10');await page.getByRole('button',{name:'Save record',exact:true}).click();
+  await page.locator('#material-more-details > summary').click();await page.getByLabel('Available quantity',{exact:true}).fill('10');await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#inventory-rows')).toContainText('In stock');
   await page.locator('#restore-file').setInputFiles({name:'project.json',mimeType:'application/json',buffer:Buffer.from(backupText)});
   await page.getByRole('button',{name:'Replace product records',exact:true}).click();
@@ -108,7 +108,7 @@ try {
   await expect.poll(()=>copies.length,{timeout:10000}).toBe(2);
   available=false;
   await page.getByRole('button',{name:'Close sharing',exact:true}).click();
-  await page.getByRole('button',{name:'Update stock',exact:true}).click();await page.getByLabel('Available quantity',{exact:true}).fill('1');await page.getByRole('button',{name:'Save record',exact:true}).click();
+  await page.getByRole('button',{name:'Update stock',exact:true}).click();await page.locator('#material-more-details > summary').click();await page.getByLabel('Available quantity',{exact:true}).fill('1');await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#cloud-status')).toContainText('Cloud connection unavailable',{timeout:10000});
   available=true;await page.evaluate(()=>window.dispatchEvent(new Event('online')));
   await expect(page.locator('#cloud-banner')).toContainText('Cloud copy saved',{timeout:10000});

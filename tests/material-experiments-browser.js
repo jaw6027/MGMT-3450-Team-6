@@ -13,6 +13,7 @@ try{
  await page.getByLabel('What changed from baseline',{exact:true}).fill('Added PVC coat and cotton backing');
  await page.getByLabel('PVC amount / coating (include units or confirmed none)',{exact:true}).fill('10 g/m²');
  await page.getByLabel('Backing type / layers',{exact:true}).fill('Woven cotton');
+ await page.locator('#material-more-details > summary').click();
  await page.getByLabel('Preparation / bonding method',{exact:true}).fill('Adhesive protocol A');
  await page.getByRole('button',{name:'Save record',exact:true}).click();await expect(page.locator('#record-dialog')).not.toBeVisible();
  await page.getByRole('checkbox',{name:'Compare Cactus + PVC + cotton',exact:true}).check();

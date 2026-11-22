@@ -12,6 +12,11 @@ try {
   await page.getByRole('heading',{name:'Product development.'}).waitFor();
   // Daily view starts focused; secondary records are revealed deliberately.
   await expect(page.locator('#attention')).toBeVisible();
+  await expect(page.locator('.experiment-quick-steps li')).toHaveCount(3);
+  await expect(page.locator('#experiment-help')).not.toHaveAttribute('open','');
+  await page.locator('#experiment-help > summary').click();
+  await expect(page.locator('#experiment-help')).toContainText('Click My project');
+  await page.locator('#experiment-help > summary').click();
   await expect(page.locator('#materials')).toBeVisible();
   await expect(page.locator('#testing-progress')).toBeVisible();
   for(const id of ['getting-started','project-totals','comparison-details','test-record-details','prototypes-details','prototype-photos-details','inventory-details','development-costs-details','help']) {
@@ -30,6 +35,9 @@ try {
   async function material(name,costUnit,basis) {
     await page.getByRole('button',{name:'+ Add material',exact:true}).click();
     await page.getByLabel('Material name',{exact:true}).fill(name);
+    await expect(page.locator('#material-more-details')).not.toHaveAttribute('open','');
+    await expect(page.getByLabel('Supplier',{exact:true})).not.toBeVisible();
+    await page.locator('#material-more-details > summary').click();
     await page.getByLabel('Supplier',{exact:true}).fill('Research supplier');
     await page.getByLabel('Composition',{exact:true}).fill('Candidate plant fiber composite');
     await page.getByLabel('Thickness (mm)',{exact:true}).fill('1.2');
@@ -114,6 +122,7 @@ try {
   await page.setViewportSize({width:390,height:844});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.getByRole('button',{name:'Edit material: Laura composite A',exact:true}).click();
+  await page.locator('#material-more-details > summary').click();
   await page.getByLabel('Material notes',{exact:true}).fill('A change that must not be saved');
   await page.evaluate(()=>{Storage.prototype.setItem=function(){throw new Error('Quota exceeded');};});
   await page.getByRole('button',{name:'Save record',exact:true}).click();
