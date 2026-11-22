@@ -5,6 +5,9 @@ export const segments=['Oil & gas operator','Industrial contractor','PPE distrib
 export const companyTypes=['Not recorded','Oil & gas operator','Drilling contractor','Oilfield service company','PPE distributor','Other'];
 export const requirementLabels={testing:'Required glove testing',certifications:'Required certifications',sizes:'Sizes needed',price:'Buyer price range',vendor:'Vendor approval steps'};
 export const requirementStatuses=['Not discussed','To confirm','Documented'];
+export const contactRoles=['Safety / HSE','Purchasing','Order approver','Operations','Other'];
+export const concernTypes=['Not recorded','Price','Durability','Testing evidence','Availability','Other'];
+export const concernStatuses=['To clarify','Open','Resolved'];
 export const roles=['Safety / HSE','Procurement','Distribution','Sustainability','Other'];
 export const priorities=['High','Normal','Low'];
 export const sampleStates=['Not requested','Requested','Sent','Feedback received'];
@@ -26,6 +29,13 @@ export function validateAccount(value){
  if(a.sampleSent&&!["Sent","Feedback received"].includes(value.sample))throw Error('Choose Sent or Feedback received for a sent sample.');
  if((a.feedbackDue&&a.feedbackDue<a.sampleSent)||(a.feedbackReceived&&a.feedbackReceived<a.sampleSent))throw Error('Feedback dates cannot be earlier than the sample sent date.');
  if((a.feedbackReceived||a.sampleResponse)&&value.sample!=='Feedback received')throw Error('Choose Feedback received when recording a sample response.');
+ if(value.contacts!==undefined&&(!Array.isArray(value.contacts)||value.contacts.length>10))throw Error('Use up to 10 decision-maker contacts per company.');
+ a.contacts=(value.contacts||[]).map(c=>{if(!c||!contactRoles.includes(c.role))throw Error('Choose a contact role.');const person={id:text(c.id,80,'contact ID',true),name:text(c.name,100,'contact name',true),role:c.role,email:text(c.email||'',160,'contact email'),phone:text(c.phone||'',60,'contact phone')};if(person.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(person.email))throw Error('Check decision-maker email or leave it blank.');return person;});
+ if(new Set(a.contacts.map(c=>c.id)).size!==a.contacts.length)throw Error('Decision-maker contact IDs must be unique.');
+ a.concernType=value.concernType ?? 'Not recorded';a.concernStatus=value.concernStatus ?? 'To clarify';
+ if(!concernTypes.includes(a.concernType)||!concernStatuses.includes(a.concernStatus))throw Error('Choose a valid customer concern and status.');
+ if(a.concernType==='Not recorded'&&a.concernStatus!=='To clarify')throw Error('Choose a main concern before marking it open or resolved.');
+ a.concernNotes=text(value.concernNotes??'',800,'customer concern');a.concernResponse=text(value.concernResponse??'',600,'planned response');
  if(a.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email))throw Error('Enter a valid email address or leave it blank.');
  for(const [key,options] of [['segment',segments],['role',roles],['stage',stages],['priority',priorities],['sample',sampleStates]]){if(!options.includes(value[key]))throw Error(`Choose a valid ${key}.`);a[key]=value[key];}
  a.followUp=text(value.followUp,10,'follow-up date');if(a.followUp&&!validDate(a.followUp))throw Error('Enter a valid follow-up date.');
@@ -41,16 +51,16 @@ export function validateBackup(value){
 }
 export const backup=accounts=>({app:'laura-ppe-crm',version:1,accounts:accounts.map(validateAccount)});
 export function selectAccounts(accounts,{search='',segment='',stage='',due='',companyType=''}={},date=today()){
- return accounts.filter(a=>(!search||[a.company,a.contact,a.email,a.phone,a.location,a.sampleVersion,a.companyType,a.need,a.nextAction].join(' ').toLowerCase().includes(search.toLowerCase()))&&(!companyType||a.companyType===companyType)&&(!segment||a.segment===segment)&&(!stage||a.stage===stage)&&(!due||(a.followUp&& !['Customer','Not a fit'].includes(a.stage)&&(due==='overdue'?a.followUp<date:a.followUp<=date))));
+ return accounts.filter(a=>(!search||[a.company,a.contact,a.email,a.phone,a.location,a.sampleVersion,a.companyType,...(a.contacts||[]).flatMap(c=>[c.name,c.role,c.email,c.phone]),a.concernType,a.concernNotes,a.need,a.nextAction].join(' ').toLowerCase().includes(search.toLowerCase()))&&(!companyType||a.companyType===companyType)&&(!segment||a.segment===segment)&&(!stage||a.stage===stage)&&(!due||(a.followUp&& !['Customer','Not a fit'].includes(a.stage)&&(due==='overdue'?a.followUp<date:a.followUp<=date))));
 }
 export function summarize(accounts,date=today()){
  const open=accounts.filter(a=>!['Customer','Not a fit'].includes(a.stage));
  return {total:accounts.length,open:open.length,due:open.filter(a=>a.followUp&&a.followUp<=date).length,samples:open.filter(a=>['Requested','Sent'].includes(a.sample)).length,customers:accounts.filter(a=>a.stage==='Customer').length};
 }
 export function exportCSV(accounts){
- const headers=['Company','Contact','Email','Buyer segment','Buyer role','Priority','Stage','Sample status','PPE needs','Next action','Follow-up date','Notes','Phone','Location','Sample version','Estimated glove pairs','Purchasing timeline / conditions','Company type','Sample sent date','Feedback due date','Feedback received date','Buyer sample response','Waiting for reply since',...Object.values(requirementLabels).flatMap(label=>[label+' status',label+' details'])];
+ const headers=['Company','Contact','Email','Buyer segment','Buyer role','Priority','Stage','Sample status','PPE needs','Next action','Follow-up date','Notes','Phone','Location','Sample version','Estimated glove pairs','Purchasing timeline / conditions','Company type','Sample sent date','Feedback due date','Feedback received date','Buyer sample response','Waiting for reply since',...Object.values(requirementLabels).flatMap(label=>[label+' status',label+' details']),'Decision-maker contacts (JSON)','Main concern','Concern status','Concern notes','Planned response'];
  const cell=value=>'"'+String(value).replace(/^[\s]*[=+@-]/,v=>"'"+v).replaceAll('"','""')+'"';
- return [headers,...accounts.map(a=>[a.company,a.contact,a.email,a.segment,a.role,a.priority,a.stage,a.sample,a.need,a.nextAction,a.followUp,a.notes,a.phone,a.location,a.sampleVersion,a.quantity ?? '',a.purchasePlan,a.companyType,a.sampleSent,a.feedbackDue,a.feedbackReceived,a.sampleResponse,a.awaitingSince,...Object.keys(requirementLabels).flatMap(key=>[a.requirements?.[key]?.status ?? 'Not discussed',a.requirements?.[key]?.details ?? ''])])].map(row=>row.map(cell).join(',')).join('\r\n');
+ return [headers,...accounts.map(a=>[a.company,a.contact,a.email,a.segment,a.role,a.priority,a.stage,a.sample,a.need,a.nextAction,a.followUp,a.notes,a.phone,a.location,a.sampleVersion,a.quantity ?? '',a.purchasePlan,a.companyType,a.sampleSent,a.feedbackDue,a.feedbackReceived,a.sampleResponse,a.awaitingSince,...Object.keys(requirementLabels).flatMap(key=>[a.requirements?.[key]?.status ?? 'Not discussed',a.requirements?.[key]?.details ?? '']),JSON.stringify(a.contacts||[]),a.concernType??'Not recorded',a.concernStatus??'To clarify',a.concernNotes??'',a.concernResponse??''])].map(row=>row.map(cell).join(',')).join('\r\n');
 }
 export const demoAccounts=[
  ['demo-1','Canyon Field Services','Morgan Lee','Industrial contractor','Safety / HSE','High','Sample evaluation','Sent','Grip during equipment handling; document trial conditions.','Ask for trial observations','2026-11-20'],
@@ -90,4 +100,14 @@ export function attentionReasons(a,date=today()){
 }
 export function relationshipsNeedingAttention(accounts,date=today()){
  return accounts.map(account=>({account,reasons:attentionReasons(account,date)})).filter(item=>item.reasons.length).sort((a,b)=>a.reasons.map(r=>r.date).sort()[0].localeCompare(b.reasons.map(r=>r.date).sort()[0]));
+}
+
+export function weeklyOutreach(accounts,date=today()){
+ const end=new Date(date+'T12:00:00Z');end.setUTCDate(end.getUTCDate()+6);const through=end.toISOString().slice(0,10);
+ const open=accounts.filter(a=>!['Customer','Not a fit'].includes(a.stage));
+ const byPriority=(a,b)=>priorities.indexOf(a.priority)-priorities.indexOf(b.priority)||a.company.localeCompare(b.company);
+ return {from:date,through,
+  newContacts:open.filter(a=>a.stage==='Target identified'&&(!a.followUp||a.followUp<=through)).sort(byPriority),
+  followUps:open.filter(a=>a.followUp&&a.followUp<=through).sort((a,b)=>a.followUp.localeCompare(b.followUp)||byPriority(a,b)),
+  sampleDiscussions:open.filter(a=>a.sample!=='Feedback received'&&!a.feedbackReceived&&((a.feedbackDue&&a.feedbackDue<=through)||(a.sample==='Requested'&&(!a.followUp||a.followUp<=through)))).sort((a,b)=>(a.feedbackDue||'9999').localeCompare(b.feedbackDue||'9999')||byPriority(a,b))};
 }
