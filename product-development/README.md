@@ -59,3 +59,9 @@ The browser suites also cover planning, retests, photos, inventory, expenses, re
 ## A calmer everyday view
 
 The home page focuses on next actions and upcoming tests, material comparison, and testing progress. Getting started, project totals, detailed comparisons, test records, and retesting history expand on request. More tools holds prototypes, photos, inventory, and expenses. Save/restore and Sign in & share remain accessible. Help explains saving and evidence. These layout changes preserve existing records and backup compatibility.
+
+## Material combinations and experiments
+
+Use Add material for the original/as-supplied cactus material. Use Add combination for each modified sample, select its baseline, and record what changed, PVC amount/coating with units, backing/layers, preparation/bonding, and its batch ID. The new combination does not copy test results or assume that the original contains no plastic. Blank composition fields mean unknown; enter confirmed absence explicitly.
+
+Select up to three samples and open Material details to compare configurations and all directly linked material tests. Each trial keeps its method, conditions, evidence, date, sample size, result/unit, and criterion. Prototype test results remain in Test records & evidence. Record tests against each exact sample; repeated trials remain separate. No best-material ranking or causal improvement is inferred. Configuration fields are retained in personal storage, full backups, optional cloud snapshots, and progress reports. Existing product backups remain compatible.

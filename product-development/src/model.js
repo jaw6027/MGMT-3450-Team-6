@@ -29,9 +29,13 @@ export function validateProject(value) {
     if((result.energy!==null || result.carbon!==null) && (!result.basis || !result.sourceRef || result.sourceType==='Not documented'))throw new Error('Environmental figures need a stated measurement basis, source type, and source reference.');
     result.quantity=number(r.quantity,'Available quantity');result.quantityUnit=text(r.quantityUnit || '','Inventory unit');result.location=text(r.location || '','Storage location');result.reorderAt=number(r.reorderAt,'Reorder threshold');
     if((result.quantity!==null || result.reorderAt!==null) && !result.quantityUnit)throw new Error('Record the inventory unit when entering a quantity or reorder threshold.');
+    for(const key of ['baseMaterialId','modification','pvcContent','backing','preparation'])result[key]=text(r[key] || '',key);
+    if(result.baseMaterialId && !result.modification)throw new Error('Describe what changed from the baseline material.');
     return result;
   });
   const materialIds=new Set(materials.map(r=>r.id));
+  const materialById=new Map(materials.map(m=>[m.id,m]));
+  for(const m of materials){const seen=new Set([m.id]);let parent=m.baseMaterialId;while(parent){if(!materialIds.has(parent) || seen.has(parent))throw new Error('Choose an existing baseline material without a circular link.');seen.add(parent);parent=materialById.get(parent).baseMaterialId;}}
   const prototypes=value.prototypes.map(r=>{
     const result={...base(r,'Prototype name / version'),materialId:text(r.materialId,'Primary material',true),batch:text(r.batch || '','Prototype batch'),stage:choice(r.stage,prototypeStages,'prototype stage'),nextAction:text(r.nextAction || '','Next action'),nextDate:date(r.nextDate,'Next action date')};
     if(!materialIds.has(result.materialId))throw new Error('Choose an existing material for the prototype.');
@@ -95,3 +99,6 @@ export const demoProject=()=>validateProject({version:1,materials:[
   {id:'demo-ta',name:'Flexibility exploration',targetKind:'prototype',targetId:'demo-pa',category:'Flexibility',status:'Complete',evidence:'Internal test',date:'2026-11-17',method:'Fictional internal handling protocol v1',conditions:'Illustrative dry indoor handling exercise',operator:'Example researcher',sampleSize:3,result:3.5,unit:'score / 5',qualitative:'Illustrative rating only',criterion:'',outcome:'Not assessed',sourceRef:'Simulated data; not a safety or certification result',notes:'Repeat with a documented comparison method.',file:null},
   {id:'demo-tb',name:'Abrasion protocol planning',targetKind:'material',targetId:'demo-mb',category:'Abrasion',status:'Planned',evidence:'Internal test',date:'',method:'To be selected with a qualified tester',conditions:'',operator:'',sampleSize:null,result:null,unit:'',qualitative:'',criterion:'',outcome:'Not assessed',sourceRef:'',notes:'Select the appropriate standard and sample preparation.',file:null}
 ]});
+
+// Material experiments stay distinct from tests of a finished prototype. Preserve every trial.
+export function materialExperimentTests(project,ids){const selected=new Set(ids);return project.tests.filter(t=>t.targetKind==='material' && selected.has(t.targetId)).sort((a,b)=>a.category.localeCompare(b.category) || a.method.localeCompare(b.method) || a.date.localeCompare(b.date));}

@@ -19,8 +19,8 @@ export function simplifyLayout(){
   $('planning').querySelector('.section-heading').remove();
   fold($('retest-history').closest('.workbench-section'),'Retesting history','View changes and follow-up evidence','retest-details');
   $('materials').querySelector('h2').textContent='Material comparison';
-  const compare=document.createElement('div');$('comparison').before(compare);compare.append($('comparison'),$('basis-notes'));
-  fold(compare,'Material details','View recorded properties, sources, and comparison notes','comparison-details');
+  const compare=document.createElement('div');$('comparison').before(compare);compare.append($('comparison'),$('basis-notes'),$('experiment-results'));
+  fold(compare,'Material details','View combinations, test results, and comparison notes','comparison-details');
   const test=$('testing'),records=document.createElement('div');
   const heading=test.querySelector('.section-heading');
   while(heading.nextSibling)records.append(heading.nextSibling);
