@@ -65,3 +65,27 @@ The home page focuses on next actions and upcoming tests, material comparison, a
 Use Add material for the original/as-supplied cactus material. Use Add combination for each modified sample, select its baseline, and record what changed, PVC amount/coating with units, backing/layers, preparation/bonding, and its batch ID. The new combination does not copy test results or assume that the original contains no plastic. Blank composition fields mean unknown; enter confirmed absence explicitly.
 
 Select up to three samples and open Material details to compare configurations and all directly linked material tests. Each trial keeps its method, conditions, evidence, date, sample size, result/unit, and criterion. Prototype test results remain in Test records & evidence. Record tests against each exact sample; repeated trials remain separate. No best-material ranking or causal improvement is inferred. Configuration fields are retained in personal storage, full backups, optional cloud snapshots, and progress reports. Existing product backups remain compatible.
+# Laura’s sample notebook
+
+The Sample notebook is a short path into the existing material and test records.
+Choose **My project** for an empty personal workspace, then **Add a sample**.
+Unknown PVC amounts, backing details, and results can stay blank.
+
+- **Add changed version** creates a new material linked to the chosen baseline.
+  Describe the actual change; the original sample and results remain intact.
+- **Record a test** opens the test editor with that material selected. It starts
+  as planned and leaves results blank. Completed results need the existing test
+  context fields.
+- **Compare with baseline** selects the changed sample and its baseline, opens
+  Material details, and shows their recorded properties and material tests.
+  It does not rank samples or assume differently performed tests are comparable.
+- Search matches sample names, batches, composition, PVC, backing, and changes.
+
+Demo cards remain fictional and cannot be edited from the notebook. Personal
+records use the existing browser storage, full backups, and optional configured
+cloud tools. The notebook introduces no separate data store or automatic upload.
+
+Run `node tests/sample-notebook-browser.js` against the built Pages preview, or
+run `npm run test:product:browser` for the complete product browser suite. Set
+`CHROMIUM_PATH` to the installed browser executable when needed.
+

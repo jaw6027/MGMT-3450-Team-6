@@ -1,3 +1,5 @@
+import os from 'node:os';
+import path from 'node:path';
 import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -125,7 +127,7 @@ try {
   assert.equal(await page.evaluate(()=>localStorage.getItem('btl-cloud-pending')),'MARKETING QUEUE');
   await page.getByRole('button',{name:'Close sharing',exact:true}).click();
   await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-  await page.screenshot({path:'/tmp/laura-product-workbench-mobile.png',fullPage:true});
+  await page.screenshot({path:path.join(os.tmpdir(),'laura-product-workbench-mobile.png'),fullPage:true});
   assert.deepEqual(errors,[]);
   console.log('Product workbench checks passed: checklist, scheduling, retests, photos, inventory, actual costs, report privacy, full backup/restore, email-code sign-in, separate collection, automatic backups, failed-upload retry, cloud restore, sign-out, marketing isolation, and mobile. Cloud responses were mocked; no live sign-in email was sent.');
 }finally{await browser.close();}

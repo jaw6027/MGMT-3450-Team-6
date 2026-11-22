@@ -1,3 +1,5 @@
+import os from 'node:os';
+import path from 'node:path';
 import {chromium,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -117,9 +119,9 @@ try {
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#record-error')).toContainText('Nothing was saved');
   await page.getByRole('button',{name:'Cancel',exact:true}).click();
-  await page.screenshot({path:'/tmp/laura-product-mobile.png',fullPage:true});
+  await page.screenshot({path:path.join(os.tmpdir(),'laura-product-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1100});
-  await page.screenshot({path:'/tmp/laura-product-desktop.png',fullPage:true});
+  await page.screenshot({path:path.join(os.tmpdir(),'laura-product-desktop.png'),fullPage:true});
   assert.deepEqual(errors,[]);
   console.log('Product browser checks passed: separate personal project, materials and basis warnings, prototypes, test requirements, criteria, notes, attachments, persistence, filters, CSV, complete backup/restore, marketing-data isolation, demo switching, mobile, and failed storage writes.');
 }finally{await browser.close();}

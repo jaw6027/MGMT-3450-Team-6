@@ -4,6 +4,7 @@ import '../../src/style.css';
 import './style.css';
 import {todayPacific,parseDollars} from '../../src/personal-data.js';
 import {simplifyLayout} from './layout.js';
+import {mountNotebook} from './notebook.js';
 import {mountWorkbench} from './workbench.js';
 import {mountSharing} from '../../src/sharing.js';
 import {productSnapshot,validateProductSnapshot,productReport} from './reports.js';
@@ -57,7 +58,7 @@ function render() {
   renderTests();
   const actions=state.prototypes.filter(p=>p.stage!=='Retired' && p.nextAction),today=todayPacific();
   $('next-actions').innerHTML=actions.length?actions.map(p=>`<div class="next-action"><span class="action-number">↗</span><div><strong>${esc(p.name)}</strong><p>${esc(p.nextAction)}</p><small class="${p.nextDate && p.nextDate<today?'overdue':''}">${p.nextDate?`${p.nextDate<today?'Overdue · ':''}${esc(p.nextDate)}`:'Choose a date for this action'}</small></div>${editButton('prototypes',p,'Update')}</div>`).join(''):'<p class="empty-state">Record a prototype’s next action to build your development plan. No product safety or material ranking is inferred automatically.</p>';
-  workbench.render();layout.render(state);sharing.changed();
+  workbench.render();layout.render(state);notebook.render();sharing.changed();
 }
 function renderComparison() {
   const materials=state.materials.filter(m=>selected.has(m.id));
@@ -170,4 +171,8 @@ const sharing=mountSharing({isDemo:()=>!personal,notify:toast,restore:copy=>{com
   demoMessage:'Choose My project before using personal backups. Demo examples are not uploaded.'
 }});
 const layout=simplifyLayout();
+const notebook=mountNotebook({getProject:()=>state,isPersonal:()=>personal,openForm,compare:ids=>{
+  selected=new Set(ids);document.querySelectorAll('.compare-check').forEach(box=>{box.checked=selected.has(box.value);});
+  renderComparison();$('comparison-details').open=true;$('comparison-details').scrollIntoView({behavior:'smooth'});
+}});
 render();
