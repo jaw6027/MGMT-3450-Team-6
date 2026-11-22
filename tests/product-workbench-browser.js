@@ -16,7 +16,7 @@ try {
   project.prototypes[0].name='Laura glove v1';project.tests[0].name='Baseline flexibility trial';project.tests[0].notes='PRIVATE TEST NOTE';
   await page.evaluate(({key,project})=>{localStorage.setItem(key,JSON.stringify(project));localStorage.setItem('btl-import','MARKETING RECORDS');localStorage.setItem('btl-cloud-config','MARKETING CONFIG');localStorage.setItem('btl-cloud-pending','MARKETING QUEUE');},{key:storageKey,project:validateProject(project)});
   await page.reload();
-  for(const id of ['more-tools-panel','getting-started','prototypes-details','prototype-photos-details','test-record-details','retest-details','inventory-details','development-costs-details'])await page.locator('#'+id+' > summary').click();
+  for(const id of ['materials-panel','testing-panel','attention-panel','help','more-tools-panel','getting-started','prototypes-details','prototype-photos-details','test-record-details','retest-details','inventory-details','development-costs-details'])await page.locator('#'+id+' > summary').click();
   await expect(page.locator('#checklist-progress')).toContainText('5 / 5');
   await expect(page.locator('#inventory-rows')).toContainText('Reorder needed');
   await page.getByRole('button',{name:'Edit prototype: Laura glove v1',exact:true}).click();
@@ -47,7 +47,7 @@ try {
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#expense-summary article').first()).toContainText('$125.25');
   await page.reload();
-  for(const id of ['more-tools-panel','getting-started','prototypes-details','prototype-photos-details','test-record-details','retest-details','inventory-details','development-costs-details'])await page.locator('#'+id+' > summary').click();
+  for(const id of ['materials-panel','testing-panel','attention-panel','help','more-tools-panel','getting-started','prototypes-details','prototype-photos-details','test-record-details','retest-details','inventory-details','development-costs-details'])await page.locator('#'+id+' > summary').click();
   await expect(page.locator('#photo-gallery')).toContainText('PRIVATE PHOTO CAPTION');
   await expect(page.locator('#retest-history')).toContainText('Reinforced the palm seam');
   await page.getByRole('button',{name:'Sign in & share',exact:true}).click();

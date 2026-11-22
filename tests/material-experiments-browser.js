@@ -6,7 +6,7 @@ try{
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(process.env.PRODUCT_TEST_URL || 'http://127.0.0.1:4190/docs/product-development/');
  const p=demoProject();p.materials[0].name='Cactus as supplied';p.tests.push({...p.tests[0],id:'baseline-test',name:'Baseline tear',targetKind:'material',targetId:p.materials[0].id,result:12,unit:'N',category:'Tear resistance'});
- await page.evaluate(({p,key})=>localStorage.setItem(key,JSON.stringify(p)),{p,key:storageKey});await page.reload();
+ await page.evaluate(({p,key})=>localStorage.setItem(key,JSON.stringify(p)),{p,key:storageKey});await page.reload();await page.locator('#materials-panel > summary').click();await page.locator('#testing-panel > summary').click();
  await page.getByRole('button',{name:'+ Add combination',exact:true}).click();
  await expect(page.getByLabel('Baseline material (optional)',{exact:true})).toHaveValue(p.materials[0].id);
  await page.getByLabel('Material name',{exact:true}).fill('Cactus + PVC + cotton');
@@ -28,7 +28,7 @@ try{
  await page.getByRole('button',{name:'Save record',exact:true}).click();await expect(page.locator('#record-dialog')).not.toBeVisible();
  await expect(page.locator('#experiment-results')).toContainText('18 N');await expect(page.locator('#experiment-results')).toContainText('12 N');
  await expect(page.locator('#experiment-results')).not.toContainText('Flexibility exploration');
- await page.reload();await page.locator('#comparison-details > summary').click();
+ await page.reload();await page.locator('#materials-panel > summary').click();await page.locator('#testing-panel > summary').click();await page.locator('#comparison-details > summary').click();
  // New samples persist without replacing the baseline or its tests.
  const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);assert.equal(saved.materials.find(m=>m.name==='Cactus + PVC + cotton').pvcContent,'10 g/m²');assert.equal(saved.tests.find(t=>t.id==='baseline-test').result,12);
  await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);

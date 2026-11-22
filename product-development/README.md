@@ -89,3 +89,5 @@ Run `node tests/sample-notebook-browser.js` against the built Pages preview, or
 run `npm run test:product:browser` for the complete product browser suite. Set
 `CHROMIUM_PATH` to the installed browser executable when needed.
 
+
+The sample notebook is the default home view. Compare, test records, schedules, and extra tools start closed; navigation and sample result buttons reveal the appropriate section. Each sample keeps test progress and its primary actions visible, with configuration and editing under Sample details & changes. The detailed guide remains under Help. This changes presentation only; saved project data and backup formats are unchanged.

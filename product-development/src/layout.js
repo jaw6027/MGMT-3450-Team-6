@@ -9,7 +9,7 @@ export function simplifyLayout(){
     summary.append(label,hint);details.append(summary);node.before(details);details.append(node);return details;
   }
   document.querySelector('.lab-hero').remove();
-  document.querySelector('.page-heading p').textContent='Your next steps, material choices, and testing progress in one place.';
+  document.querySelector('.page-heading p').textContent='Start with one sample. Record what you try, then compare results.';
   fold(document.querySelector('.start-checklist'),'Getting started','View the step-by-step guide','getting-started');
   const metrics=$('metrics');
   const focus=document.createElement('section');focus.id='attention';focus.className='daily-focus';
@@ -43,12 +43,20 @@ export function simplifyLayout(){
   const guide=document.createElement('div');help.before(guide);guide.append(help);
   const p=document.createElement('p');p.className='section-intro';p.textContent='Saved records stay in this browser on this device. Use Download complete backup to keep a separate copy, Restore backup to recover it, and Sign in & share to create a progress report. Cloud sign-in needs one-time setup.';guide.prepend(p);
   fold(guide,'Help & saving your work','View a short guide to saving, sharing, and interpreting evidence','help');
-  document.querySelector('nav').innerHTML='<a class="active" href="#attention">◫ Next steps</a><a href="#materials">◇ Materials</a><a href="#testing">▥ Test progress</a><a href="#more-tools">▤ More tools</a><a href="#help">? Help</a>';
+  // The notebook is the home view; open supporting work only when needed.
+  tools.append($('project-totals'));
+  guide.prepend($('getting-started'));
+  guide.append(document.querySelector('.experiment-guide'));
+  fold($('materials'),'Compare materials & results','Choose up to three samples to review together','materials-panel');
+  fold($('testing'),'Testing records','View progress, results, methods, and reports','testing-panel');
+  fold(focus,'Next steps & upcoming tests','Check schedules and plan your next experiment','attention-panel');
+  $('materials').querySelector('.page-actions').prepend($('new-material'));
+  document.querySelector('nav').innerHTML='<a href="#materials">◇ Compare</a><a href="#testing">▥ Tests</a><a href="#help">? Help</a>';
   // Navigation into a folded section must reveal the target before scrolling.
   function reveal(hash){if(!hash?.startsWith('#'))return;const target=document.getElementById(hash.slice(1));if(!target)return;let node=target;while(node){if(node.tagName==='DETAILS')node.open=true;node=node.parentElement;}return target;}
   document.addEventListener('click',event=>{const link=event.target.closest('a[href^="#"]');if(link)reveal(link.getAttribute('href'));});
   window.addEventListener('hashchange',()=>reveal(location.hash)?.scrollIntoView());reveal(location.hash);
-  return {render(project){
+  return {reveal,render(project){
     $('testing-progress').innerHTML=['Planned','In progress','Complete'].map(label=>{
       const count=project.tests.filter(t=>t.status===label).length;
       return `<article><strong>${count}</strong><span>${label==='Complete'?'Completed':label} tests</span></article>`;

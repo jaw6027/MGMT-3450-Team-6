@@ -114,6 +114,16 @@ function openForm(kind,record=null,view=false,defaults={}){
   }
   if(kind==='materials' && !record)$('field-sourceType').value='Not documented';
   if(kind==='tests' && !record){$('field-status').value='Planned';$('field-evidence').value=defaults.evidence || 'Internal test';$('field-outcome').value='Not assessed';}
+  if(kind==='tests'){
+    const details=document.createElement('details');details.id='test-more-details';details.className='material-more-details wide-field';
+    details.innerHTML='<summary>Test details &amp; reports <small>Method, conditions, sources, criteria, and retesting history</small></summary><p class="planner-caption">A completed result needs its method, conditions, tester, and sample size so you can compare it fairly.</p><div class="record-fields"></div>';
+    const attachment=$('record-fields').querySelector('.report-field');$('record-fields').append(details);
+    for(const key of ['dueDate','method','conditions','operator','sampleSize','criterion','outcome','sourceRef','retestOf','changeMade','notes'])details.querySelector('.record-fields').append($(`field-${key}`).closest('.form-field'));
+    details.querySelector('.record-fields').append(attachment);
+    details.open=view || $('field-status').value==='Complete' || Boolean(initial.retestOf);
+    $('field-status').addEventListener('change',()=>{if($('field-status').value==='Complete')details.open=true;});
+    if(!view)$('record-help').textContent='Name the test and choose the sample. Save a plan now, or choose Complete to record a result and its testing details.';
+  }
   $('record-form').querySelector('[type=submit]').hidden=view;$('record-form').querySelector('[type=submit]').disabled=false;
   $('cancel-record').textContent=view?'Close details':'Cancel';$('record-dialog').showModal();
 }
@@ -150,7 +160,7 @@ $('record-form').addEventListener('submit',async event=>{
     let base=state,expected=savedRaw;
     if(!personal){const current=readPersonal();base=current.project;expected=current.raw;}
     const next=saveRecord(base,kind,record);commit(next,{expected,resetComparison:!personal});$('record-dialog').close();toast('Product record saved on this device');
-  }catch(error){if(kind==='materials')$('material-more-details').open=true;$('record-error').textContent=error.message;}finally{if(version===formVersion)button.disabled=false;}
+  }catch(error){if(kind==='materials')$('material-more-details').open=true;if(kind==='tests')$('test-more-details').open=true;$('record-error').textContent=error.message;}finally{if(version===formVersion)button.disabled=false;}
 });
 function download(data,name,type){const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 $('project-download-backup').addEventListener('click',()=>{try{download(JSON.stringify(productSnapshot(state),null,2),'Laura-Product-Development-Backup.json','application/json');toast('Complete product backup downloaded, including attached reports.');}catch(error){$('notice').textContent=error.message;}});
@@ -180,6 +190,6 @@ const sharing=mountSharing({isDemo:()=>!personal,notify:toast,restore:copy=>{com
 const layout=simplifyLayout();
 const notebook=mountNotebook({getProject:()=>state,isPersonal:()=>personal,openForm,compare:ids=>{
   selected=new Set(ids);document.querySelectorAll('.compare-check').forEach(box=>{box.checked=selected.has(box.value);});
-  renderComparison();$('comparison-details').open=true;$('comparison-details').scrollIntoView({behavior:'smooth'});
+  renderComparison();layout.reveal('#comparison-details')?.scrollIntoView({behavior:'smooth'});
 }});
 render();

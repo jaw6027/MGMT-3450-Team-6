@@ -11,12 +11,19 @@ try {
   await page.goto(process.env.PRODUCT_TEST_URL || 'http://127.0.0.1:4190/docs/product-development/');
   await page.getByRole('heading',{name:'Product development.'}).waitFor();
   // Daily view starts focused; secondary records are revealed deliberately.
-  await expect(page.locator('#attention')).toBeVisible();
+  await expect(page.locator('#sample-notebook')).toBeVisible();
+  for(const id of ['materials-panel','testing-panel','attention-panel'])await expect(page.locator('#'+id)).not.toHaveAttribute('open','');
+  await page.getByRole('link',{name:'◇ Compare',exact:true}).click();
+  await expect(page.locator('#materials-panel')).toHaveAttribute('open','');
+  await page.locator('#testing-panel > summary').click();
+  await page.locator('#attention-panel > summary').click();
+  await page.locator('#help > summary').click();
   await expect(page.locator('.experiment-quick-steps li')).toHaveCount(3);
   await expect(page.locator('#experiment-help')).not.toHaveAttribute('open','');
   await page.locator('#experiment-help > summary').click();
   await expect(page.locator('#experiment-help')).toContainText('Click My project');
   await page.locator('#experiment-help > summary').click();
+  await page.locator('#help > summary').click();
   await expect(page.locator('#materials')).toBeVisible();
   await expect(page.locator('#testing-progress')).toBeVisible();
   for(const id of ['getting-started','project-totals','comparison-details','test-record-details','prototypes-details','prototype-photos-details','inventory-details','development-costs-details','help']) {
@@ -65,10 +72,12 @@ try {
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#next-actions')).toContainText('Repeat tear trial');
   await page.getByRole('button',{name:'+ Record test',exact:true}).click();
+  await expect(page.locator('#test-more-details')).not.toHaveAttribute('open','');
   await page.getByLabel('Test name',{exact:true}).fill('Tear trial v1');
   await page.getByLabel('Test target',{exact:true}).selectOption({label:'Prototype · Laura glove v0.1'});
   await page.getByLabel('Test category',{exact:true}).selectOption('Tear resistance');
   await page.locator('#record-dialog').getByLabel('Test status',{exact:true}).selectOption('Complete');
+  await expect(page.locator('#test-more-details')).toHaveAttribute('open','');
   await page.locator('#record-dialog').getByLabel('Evidence type',{exact:true}).selectOption('Internal test');
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#record-error')).toContainText('Test / planned date');
@@ -92,6 +101,7 @@ try {
   await expect(page.locator('#test-rows')).toContainText('18 N');
   assert.equal(await page.locator('#test-rows img').count(),0);
   await page.reload();
+  for(const id of ['materials-panel','testing-panel','attention-panel'])await page.locator('#'+id+' > summary').click();
   for(const id of ['more-tools-panel','project-totals','comparison-details','prototypes-details','test-record-details'])await page.locator('#'+id+' > summary').click();
   await expect(page.locator('#metrics .metric strong').nth(2)).toHaveText('1');
   const reportDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Download report',exact:true}).click();

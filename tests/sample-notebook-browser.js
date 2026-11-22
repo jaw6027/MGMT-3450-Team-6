@@ -13,6 +13,7 @@ try{
   await page.getByLabel('Material name',{exact:true}).fill('Cactus baseline');
   await page.getByRole('button',{name:'Save record',exact:true}).click();
   await expect(page.locator('#sample-cards')).toContainText('Cactus baseline');
+  await page.locator('#sample-cards .sample-details > summary').click();
   await page.locator('#sample-cards').getByRole('button',{name:'Add changed version',exact:true}).click();
   await expect(page.getByLabel('Baseline material (optional)',{exact:true})).not.toHaveValue('');
   await page.getByLabel('Material name',{exact:true}).fill('Cactus + PVC');
@@ -29,6 +30,7 @@ try{
   await expect(variant).toContainText('1 pending material tests');
   await variant.getByRole('button',{name:'Compare with baseline',exact:true}).click();
   await expect(page.locator('#comparison-details')).toHaveAttribute('open','');
+  await expect(page.locator('#experiment-results')).toBeVisible();
   await expect(page.locator('#comparison .comparison-card')).toHaveCount(2);
   await expect(page.locator('#experiment-results')).toContainText('PVC bending trial');
   await page.getByLabel('Find a sample',{exact:true}).fill('nothing-matches');
