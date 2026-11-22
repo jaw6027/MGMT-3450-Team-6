@@ -27,3 +27,13 @@ Development uses port 5176. Build creates a standalone `dist-venture/Laura-Custo
 The expected Pages address after successful deployment is `https://jaw6027.github.io/MGMT-3450-Team-6/venture/`. This environment blocks requests to the GitHub Pages host, so live public availability has not been verified; a local preview or committed Pages file is not evidence of a successful deployment.
 
 Buyer questionnaire tests cover validation, encoded mailto fields, no automatic sending/storage, clipboard fallback, responsive navigation, accessible FAQ controls, and escaped input. Override `VENTURE_TEST_URL` or `CHROMIUM_PATH` for browser checks if needed.
+
+## Founder, buyer next steps, and product brief
+
+The website now includes a short founder introduction using the supplied venture context and a three-step explanation of inquiry, discussion, and an agreed next step. It does not invent a personal origin story, qualifications, response-time promise, sample inventory, or commercial terms.
+
+Visitors can read the product brief in an accessible in-page dialog without downloading anything, or keep a one-page PDF. The overview explicitly marks sample/version, exact composition, finished-glove protection/certification, availability, pricing, and lead times as not established by this general brief. The PDF is embedded in the standalone site, and a copy is also deployed at `docs/venture/Beyond-Traditional-Leather-Product-Brief.pdf`.
+
+The brief text is maintained in `venture/src/brief.js`. When changing that text, run `npm run build:venture:sheet` (requires the same Chromium used by browser tests), then `npm run build:venture:pages`, and commit the updated PDF asset and generated Pages files. The saved PDF is one US Letter page, checked with a PDF reader during creation.
+
+Verified prototype photographs, version-specific test results, and customer quotes with publication permission were not available in the workspace. The supplied screenshots and existing concept artwork are not presented as real prototype photographs. The founder section uses a simple LC monogram instead of an invented portrait. Add approved originals and accurate version/stage captions when Laura provides them; do not replace concept labels with unsupported product claims.

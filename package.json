@@ -23,7 +23,8 @@
     "dev:venture": "vite venture --host 0.0.0.0 --port 5176",
     "build:venture": "vite build venture --outDir ../dist-venture --emptyOutDir && node scripts/standalone.js dist-venture Laura-Customer-Website.html",
     "build:venture:pages": "npm run build:venture && node scripts/venture-pages.js",
-    "test:venture:browser": "node tests/venture-browser.js"
+    "test:venture:browser": "node tests/venture-browser.js && node tests/venture-brief-browser.js",
+    "build:venture:sheet": "node scripts/venture-sheet.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
