@@ -15,7 +15,7 @@
     "build:product": "vite build product-development --outDir ../dist-product --emptyOutDir && node scripts/standalone.js dist-product Laura-Product-Development-Dashboard.html",
     "build:product:pages": "npm run build:product && node scripts/product-pages.js",
     "build:websites": "npm run build:pages && npm run build:product:pages",
-    "test:product:browser": "node tests/product-browser.js"
+    "test:product:browser": "node tests/product-browser.js && node tests/product-workbench-browser.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",

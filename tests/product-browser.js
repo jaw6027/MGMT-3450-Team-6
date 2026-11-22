@@ -86,13 +86,13 @@ try {
   assert.ok(csv.includes('Internal draft protocol v1') && csv.includes('internal-test.pdf'));
   const backupDownload=page.waitForEvent('download');await page.getByRole('button',{name:'Download complete backup',exact:true}).click();
   const backupText=await fs.readFile(await (await backupDownload).path(),'utf8');
-  const backup=JSON.parse(backupText);assert.equal(backup.tests[0].file.data,pdf.toString('base64'));
+  const backupValue=JSON.parse(backupText),backup=backupValue.project || backupValue;assert.equal(backup.tests[0].file.data,pdf.toString('base64'));
   await page.getByRole('button',{name:'View demo',exact:true}).click();
   await expect(page.locator('#mode')).toContainText('Demo workspace');
   await page.getByRole('button',{name:'My project',exact:true}).click();
   await expect(page.locator('#prototype-rows')).toContainText('Laura glove v0.1');
   await page.locator('#restore-file').setInputFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(backupText)});
-  await expect(page.locator('#restore-preview')).toContainText('2 materials, 1 prototypes, and 1 test records');
+  await expect(page.locator('#product-restore-preview')).toContainText('2 materials, 1 prototypes, and 1 test records');
   await page.getByRole('button',{name:'Replace product records',exact:true}).click();
   assert.equal(await page.evaluate(()=>localStorage.getItem('btl-import')),'marketing-records-must-not-change');
   await page.getByLabel('Search tests or targets',{exact:true}).fill('');

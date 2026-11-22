@@ -11,7 +11,7 @@ export function validateCloudConfig(value) {
   return {url,key};
 }
 export class CloudClient {
-  constructor(config,{fetcher=globalThis.fetch.bind(globalThis)}={}) {this.config=validateCloudConfig(config);this.fetcher=fetcher;this.session=null;}
+  constructor(config,{fetcher=globalThis.fetch.bind(globalThis),table='dashboard_backups'}={}) {this.config=validateCloudConfig(config);if(!['dashboard_backups','product_development_backups'].includes(table))throw new Error('Unsupported backup collection.');this.table=table;this.fetcher=fetcher;this.session=null;}
   async request(path,{method='GET',body,auth=false,prefer}={}) {
     if(auth)await this.ensureSession();
     const headers={apikey:this.config.key,'Content-Type':'application/json'};
@@ -23,7 +23,7 @@ export class CloudClient {
     if(!response.ok) {
       if(response.status===401)throw new Error('Sign-in has expired or the code is invalid. Sign in again.');
       if(response.status===403)throw new Error('Cloud access denied. Check your account and the backup security policies.');
-      if(response.status===404)throw new Error('Cloud setup is incomplete. Check the project URL and run cloud/supabase.sql.');
+      if(response.status===404)throw new Error(`Cloud setup is incomplete. Check the project URL and run cloud/${this.table==='product_development_backups'?'product-development.sql':'supabase.sql'}.`);
       if(response.status===429)throw new Error('Too many requests. Wait before requesting another code or backup.');
       throw new Error('Cloud request failed. Check the sign-in code, account, and project setup, then retry.');
     }
@@ -53,12 +53,12 @@ export class CloudClient {
   accountKey() {return `${this.config.url}|${this.session?.user?.id || ''}`;}
   async saveBackup(pending) {
     if(pending.account!==this.accountKey())throw new Error('This pending copy belongs to a different account. Sign in to its original account to back it up.');
-    return this.request('/rest/v1/dashboard_backups?on_conflict=id',{method:'POST',auth:true,prefer:'resolution=ignore-duplicates,return=minimal',body:{id:pending.id,user_id:this.session.user.id,snapshot:pending.snapshot}});
+    return this.request(`/rest/v1/${this.table}?on_conflict=id`,{method:'POST',auth:true,prefer:'resolution=ignore-duplicates,return=minimal',body:{id:pending.id,user_id:this.session.user.id,snapshot:pending.snapshot}});
   }
-  async history() {return this.request(`/rest/v1/dashboard_backups?select=id,created_at&user_id=eq.${encodeURIComponent(this.session.user.id)}&order=created_at.desc&limit=20`,{auth:true});}
+  async history() {return this.request(`/rest/v1/${this.table}?select=id,created_at&user_id=eq.${encodeURIComponent(this.session.user.id)}&order=created_at.desc&limit=20`,{auth:true});}
   async getBackup(id) {
     if(!/^[0-9a-f-]{36}$/i.test(id))throw new Error('Invalid backup ID.');
-    const result=await this.request(`/rest/v1/dashboard_backups?select=snapshot&id=eq.${id}&user_id=eq.${encodeURIComponent(this.session.user.id)}`,{auth:true});
+    const result=await this.request(`/rest/v1/${this.table}?select=snapshot&id=eq.${id}&user_id=eq.${encodeURIComponent(this.session.user.id)}`,{auth:true});
     if(!result?.[0]?.snapshot)throw new Error('This backup is not available to the signed-in account.');
     return result[0].snapshot;
   }

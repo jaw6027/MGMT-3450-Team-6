@@ -3,26 +3,27 @@ import {CloudClient,validateCloudConfig} from './cloud-client.js';
 import {importLeads} from './csv.js';
 
 const esc=value=>String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const configKey='btl-cloud-config',sessionKey='btl-cloud-session',pendingKey='btl-cloud-pending',autoKey='btl-cloud-auto';
 const read=(key,storage=localStorage)=>{try{return JSON.parse(storage.getItem(key) || 'null');}catch{return null;}};
-export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilters,restore,notify}) {
-  document.querySelector('.page-heading .page-actions').insertAdjacentHTML('beforeend','<button class="button" id="open-sharing">Share &amp; backup</button>');
+export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilters,restore,notify,profile={}}) {
+  const prefix=profile.namespace || 'btl-cloud';
+  const configKey=prefix+'-config',sessionKey=prefix+'-session',pendingKey=prefix+'-pending',autoKey=prefix+'-auto';
+  document.querySelector('.page-heading .page-actions').insertAdjacentHTML('beforeend',`<button class="button" id="open-sharing">${esc(profile.openLabel || 'Share & backup')}</button>`);
   document.querySelector('.topbar').insertAdjacentHTML('afterend','<div id="cloud-banner" role="status">Local storage only · cloud backup is not connected</div>');
   document.body.insertAdjacentHTML('beforeend',`
     <dialog id="sharing-dialog" aria-labelledby="sharing-title"><div class="dialog-heading"><h2 id="sharing-title">Share & protect Laura’s work</h2><button type="button" id="close-sharing" aria-label="Close sharing">×</button></div>
-    <section class="sharing-section"><h3>Share a read-only report</h3><p>Download a report to send as an attachment, or open it in your browser and print to PDF. It contains the current filtered totals and interest summary, without individual companies, lead IDs, owners, follow-up dates, or buyer notes. Custom category names are included—review before sharing.</p><label class="check-label"><input type="checkbox" id="report-planning"> Include personal goals and campaign names/costs (all active leads)</label><button class="button" id="download-report">Download report</button></section>
-    <section class="sharing-section"><h3>Complete personal backup</h3><p>This private file includes all personal leads, notes, sample tracking, goals, and campaign costs, independently of filters. Keep it somewhere safe. It does not contain cloud sign-in credentials.</p><button class="button" id="download-backup">Download complete backup</button><label>Choose a complete backup to restore<input id="backup-file" type="file" accept=".json,application/json"></label></section>
-    <section class="sharing-section"><h3>Sign in to private cloud backup</h3><p>Sign-in protects cloud copies. Your local dashboard remains available on this device. It is not a password lock on this HTML file. Cloud backup requires the one-time Supabase setup described in the included setup guide.</p>
+    <section class="sharing-section"><h3>Share a read-only report</h3><p>${esc(profile.reportText || 'Download a report to send as an attachment, or open it in your browser and print to PDF. It contains the current filtered totals and interest summary, without individual companies, lead IDs, owners, follow-up dates, or buyer notes. Custom category names are included—review before sharing.')}</p><label class="check-label"><input type="checkbox" id="report-planning"> ${esc(profile.detailLabel || 'Include personal goals and campaign names/costs (all active leads)')}</label><button class="button" id="download-report">Download report</button></section>
+    <section class="sharing-section"><h3>Complete personal backup</h3><p>${esc(profile.backupText || 'This private file includes all personal leads, notes, sample tracking, goals, and campaign costs, independently of filters. Keep it somewhere safe. It does not contain cloud sign-in credentials.')}</p><button class="button" id="download-backup">Download complete backup</button><label>Choose a complete backup to restore<input id="backup-file" type="file" accept=".json,application/json"></label></section>
+    <section class="sharing-section"><h3>Sign in to private cloud backup</h3><p>Sign-in protects cloud copies. Your local dashboard remains available on this device. It is not a password lock on this HTML file. Cloud backup requires the one-time Supabase setup described in the included setup guide.${profile.setupUrl?` <a href="${esc(profile.setupUrl)}" target="_blank" rel="noopener noreferrer">Open setup instructions</a>`:''}</p>
     <details id="cloud-setup"><summary>Connect cloud service (one-time setup)</summary><form id="cloud-config-form"><label>Supabase project URL<input type="url" id="cloud-url" placeholder="https://project-ref.supabase.co" required></label><label>Publishable or anon key<input type="password" id="cloud-key" autocomplete="off" required></label><p>Use only a public publishable/anon key. Never use a secret or service-role key.</p><button class="button" type="submit">Save connection</button></form></details>
     <p id="cloud-account"></p><form id="cloud-email-form"><label>Laura’s sign-in email<input type="email" id="cloud-email" autocomplete="email" required></label><button class="button" id="send-code" type="submit">Send sign-in code</button></form>
     <form id="cloud-code-form" hidden><label>Email sign-in code<input id="cloud-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required></label><button class="button primary" id="verify-code" type="submit">Sign in</button></form>
     <div id="cloud-signed-in" hidden><label class="check-label"><input type="checkbox" id="cloud-auto"> Automatically back up saved changes</label><p>When enabled, the app saves a new private copy after changes while open and signed in. Offline changes wait for a connection. Copies are never merged into another device automatically.</p><div class="page-actions"><button class="button" id="backup-now">Back up now</button><button class="button" id="refresh-backups">Refresh cloud copies</button><button class="button" id="cloud-signout">Sign out</button></div><div id="cloud-history"></div></div>
     <button class="button" id="discard-pending" hidden>Discard pending backup</button><p id="cloud-status" role="status"></p><p id="sharing-error" class="form-error" role="alert"></p></section></dialog>
-    <dialog id="restore-dialog" aria-labelledby="restore-title"><div class="dialog-heading"><h2 id="restore-title">Restore a complete copy?</h2><button type="button" id="cancel-restore" aria-label="Cancel restore">×</button></div><p id="restore-preview"></p><p class="dialog-note">This replaces all local personal leads, goals, and campaign costs. Download a complete backup of your current work first if you need to keep it. Previous cloud copies remain unchanged.</p><p id="restore-error" class="form-error" role="alert"></p><button class="button primary" id="confirm-restore">Replace local work</button></dialog>`);
+    <dialog id="restore-dialog" aria-labelledby="restore-title"><div class="dialog-heading"><h2 id="restore-title">Restore a complete copy?</h2><button type="button" id="cancel-restore" aria-label="Cancel restore">×</button></div><p id="restore-preview"></p><p class="dialog-note">${esc(profile.restoreText || 'This replaces all local personal leads, goals, and campaign costs. Download a complete backup of your current work first if you need to keep it. Previous cloud copies remain unchanged.')}</p><p id="restore-error" class="form-error" role="alert"></p><button class="button primary" id="confirm-restore">Replace local work</button></dialog>`);
   const $=id=>document.getElementById(id);
   const status=text=>{$('cloud-status').textContent=text;};
   const error=text=>{$('sharing-error').textContent=text;};
-  const snapshot=()=>{if(isDemo())throw new Error('Add or import personal leads first. Demo records are not included in personal backups.');return createBackup(getAll(),getPlanner());};
+  const snapshot=()=>{if(isDemo())throw new Error(profile.demoMessage || 'Add or import personal leads first. Demo records are not included in personal backups.');return profile.createSnapshot ? profile.createSnapshot() : createBackup(getAll(),getPlanner());};
   function download(content,filename,type) {const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   let client=null,ready=false,auto=false,busy=false,timer,generation=0,codeEmail='',lastContent='',pendingRestore=null;
   function banner(text) {$('cloud-banner').textContent=text;}
@@ -36,19 +37,19 @@ export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilte
   function saveSession() {try{if(client?.session)sessionStorage.setItem(sessionKey,JSON.stringify({url:client.config.url,session:client.session}));}catch{/* session stays in memory */}}
   function configure(value) {
     const config=validateCloudConfig(value);localStorage.setItem(configKey,JSON.stringify(config));
-    client=new CloudClient(config);generation++;ready=false;auto=false;codeEmail='';lastContent='';
+    client=new CloudClient(config,{table:profile.table});generation++;ready=false;auto=false;codeEmail='';lastContent='';
     sessionStorage.removeItem(sessionKey);updateAuth();banner('Local storage only · sign in to cloud backup');
   }
   $('open-sharing').addEventListener('click',()=>{error('');$('download-backup').disabled=isDemo();updateAuth();$('sharing-dialog').showModal();});
   $('close-sharing').addEventListener('click',()=>$('sharing-dialog').close());
   $('download-report').addEventListener('click',()=>{
-    const html=reportHTML({records:getFiltered(),planner:getPlanner(),filters:describeFilters(),demo:isDemo(),includePlanning:$('report-planning').checked});
-    download(html,'Laura-Marketing-Report.html','text/html;charset=utf-8');notify('Read-only report downloaded. Review it before sharing.');
+    const html=profile.report ? profile.report({includeDetails:$('report-planning').checked}) : reportHTML({records:getFiltered(),planner:getPlanner(),filters:describeFilters(),demo:isDemo(),includePlanning:$('report-planning').checked});
+    download(html,profile.reportFilename || 'Laura-Marketing-Report.html','text/html;charset=utf-8');notify('Read-only report downloaded. Review it before sharing.');
   });
-  $('download-backup').addEventListener('click',()=>{try{download(JSON.stringify(snapshot(),null,2),'Laura-Complete-Backup.json','application/json');notify('Complete private backup downloaded');}catch(e){error(e.message);}});
+  $('download-backup').addEventListener('click',()=>{try{download(JSON.stringify(snapshot(),null,2),profile.backupFilename || 'Laura-Complete-Backup.json','application/json');notify('Complete private backup downloaded');}catch(e){error(e.message);}});
   function previewRestore(value) {
-    pendingRestore=validateBackup(value);$('restore-error').textContent='';
-    $('restore-preview').textContent=`Copy from ${new Date(pendingRestore.createdAt).toLocaleString('en-US',{timeZone:'America/Los_Angeles'})} (Los Angeles): ${importLeads(pendingRestore.csv).length} leads, ${pendingRestore.planner.campaigns.length} campaigns, and all personal goals.`;
+    pendingRestore=(profile.validateSnapshot || validateBackup)(value);$('restore-error').textContent='';
+    $('restore-preview').textContent=profile.previewSnapshot ? profile.previewSnapshot(pendingRestore) : `Copy from ${new Date(pendingRestore.createdAt).toLocaleString('en-US',{timeZone:'America/Los_Angeles'})} (Los Angeles): ${importLeads(pendingRestore.csv).length} leads, ${pendingRestore.planner.campaigns.length} campaigns, and all personal goals.`;
     $('restore-dialog').showModal();
   }
   $('backup-file').addEventListener('change',async()=>{error('');const file=$('backup-file').files[0];if(!file)return;try{if(file.size>12*1024*1024)throw new Error('Choose a backup smaller than 12 MB.');previewRestore(JSON.parse((await file.text()).replace(/^\uFEFF/,'')));}catch(e){error(e instanceof SyntaxError?'Choose a valid dashboard JSON backup file.':e.message);}finally{$('backup-file').value='';}});
@@ -74,7 +75,7 @@ export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilte
   }
   $('refresh-backups').addEventListener('click',()=>showHistory().catch(e=>error(e.message)));
   $('cloud-history').addEventListener('click',async event=>{const button=event.target.closest('[data-cloud-restore]');if(!button)return;button.disabled=true;const current=client,epoch=generation;try{const value=await current.getBackup(button.dataset.cloudRestore);if(current!==client || epoch!==generation)return;previewRestore(value);saveSession();}catch(e){if(current===client && epoch===generation)error(e.message);}finally{button.disabled=false;}});
-  function content(copy) {return JSON.stringify({csv:copy.csv,planner:copy.planner});}
+  function content(copy) {return profile.contentKey ? profile.contentKey(copy) : JSON.stringify({csv:copy.csv,planner:copy.planner});}
   function markPending() {
     const existing=read(pendingKey),account=client.accountKey();
     if(existing && existing.account!==account)throw new Error('A pending copy belongs to a different cloud account. Sign in to that account, or discard the pending backup before enabling this one.');
@@ -110,7 +111,7 @@ export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilte
   }
   $('cloud-auto').addEventListener('change',()=>{error('');if(!ready)return;try{auto=$('cloud-auto').checked;localStorage.setItem(autoKey,JSON.stringify({account:client.accountKey(),enabled:auto}));if(auto){lastContent='';changed();}else{clearTimeout(timer);banner('Signed in · automatic cloud backup is off');}updateAuth();}catch(e){auto=false;updateAuth();error(e.message);}});
   $('backup-now').addEventListener('click',async()=>{error('');try{markPending();await flush();}catch(e){error(e.message);}});
-  $('discard-pending').addEventListener('click',()=>{if(!window.confirm('Discard only the pending upload? Local leads, goals, and costs will remain.'))return;try{localStorage.removeItem(pendingKey);lastContent='';updateAuth();status('Pending upload discarded. Local work is unchanged.');}catch(e){error(e.message);}});
+  $('discard-pending').addEventListener('click',()=>{if(!window.confirm('Discard only the pending upload? Local work will remain.'))return;try{localStorage.removeItem(pendingKey);lastContent='';updateAuth();status('Pending upload discarded. Local work is unchanged.');}catch(e){error(e.message);}});
   $('cloud-signout').addEventListener('click',async()=>{
     if(busy){error('Wait for the current backup to finish before signing out.');return;}
     auto=false;generation++;ready=false;clearTimeout(timer);try{localStorage.removeItem(autoKey);sessionStorage.removeItem(sessionKey);}catch{/* session is still cleared below */}
@@ -121,7 +122,7 @@ export function mountSharing({getAll,getFiltered,getPlanner,isDemo,describeFilte
   const configured=read(configKey) || (import.meta.env.VITE_SUPABASE_URL ? {url:import.meta.env.VITE_SUPABASE_URL,key:import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY}:null);
   if(configured) {
     try {
-      const config=validateCloudConfig(configured);client=new CloudClient(config);$('cloud-url').value=config.url;$('cloud-key').value=config.key;
+      const config=validateCloudConfig(configured);client=new CloudClient(config,{table:profile.table});$('cloud-url').value=config.url;$('cloud-key').value=config.key;
       const saved=read(sessionKey,sessionStorage);
       if(saved?.url===config.url) {
         const current=client,epoch=generation;current.acceptSession(saved.session);current.verifyUser().then(()=>{if(current!==client || epoch!==generation)return;ready=true;saveSession();auto=read(autoKey)?.account===client.accountKey() && read(autoKey)?.enabled===true;updateAuth();banner(auto?'Signed in · automatic cloud backup on':'Signed in · automatic cloud backup off');if(auto)changed();}).catch(()=>{if(current!==client || epoch!==generation)return;current.session=null;ready=false;updateAuth();banner('Saved locally · sign in again to resume cloud backup');});
