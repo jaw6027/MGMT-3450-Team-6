@@ -19,6 +19,8 @@ export function simplifyLayout(){
   $('planning').querySelector('.section-heading').remove();
   fold($('retest-history').closest('.workbench-section'),'Retesting history','View changes and follow-up evidence','retest-details');
   $('materials').querySelector('h2').textContent='Material comparison';
+  $('materials').querySelector('.section-heading').insertAdjacentHTML('afterend',`<aside class="experiment-guide" aria-labelledby="experiment-guide-title"><h3 id="experiment-guide-title">How to compare your material experiments</h3><ol><li><strong>Click My project to open your personal workspace.</strong></li><li><strong>Click Add material to enter the original cactus material.</strong></li><li><strong>Click Add combination to record a variation, including PVC, backing, and preparation.</strong></li><li><strong>Under Testing &amp; evidence, click Record test and choose the exact material sample being tested.</strong></li><li><strong>Check Compare beside up to three materials, then open Material details to see their combinations and test results together.</strong></li></ol><p><strong>For older records, open Test records &amp; evidence.</strong></p></aside>`);
+
   const compare=document.createElement('div');$('comparison').before(compare);compare.append($('comparison'),$('basis-notes'),$('experiment-results'));
   fold(compare,'Material details','View combinations, test results, and comparison notes','comparison-details');
   const test=$('testing'),records=document.createElement('div');
