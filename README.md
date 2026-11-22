@@ -2,7 +2,9 @@
 
 A personal dashboard for Laura Carrillo's early-stage plant-based work glove concept for the oil and gas industry. Uses the supplied brochure's forest green, olive, slate, and white palette. Laura is the sole editor. Local use and sharing reports need no account; optional private cloud sign-in/backups use Supabase and require the [one-time setup](cloud/SETUP.md).
 
-Laura's **separate product-development website** is documented in [product-development/README.md](product-development/README.md). It compares materials, tracks prototype versions and testing evidence, and uses independent product records and backups. Build it with `npm run build:product:pages`; `npm run build:websites` refreshes both separate sites.
+Laura's **separate product-development website** is documented in [product-development/README.md](product-development/README.md). It compares materials, tracks prototype versions and testing evidence, and uses independent product records and backups. Build it with `npm run build:product:pages`; `npm run build:websites` refreshes all three separate sites.
+
+Laura’s **separate customer relationship management dashboard** is documented in [customer-relationships/README.md](customer-relationships/README.md). It tracks target buyer accounts, conversations, sample discussions, and follow-ups in its own local workspace. Run `npm run dev:crm` or build its website with `npm run build:crm:pages`.
 
 ## Run locally
 
